@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('home');
 })->name('home');
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth','verified'])->group(function () {
     require __DIR__ . '/shared/profile.php';
     Route::middleware('admin')->group(function () {
         require __DIR__ . '/admin/user.php';

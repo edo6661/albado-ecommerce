@@ -13,4 +13,5 @@ interface AuthServiceInterface
     public function verifyEmail(User $user): bool;
     public function sendPasswordResetLink(string $email): bool;
     public function resetPassword(array $data): bool;
+    public function redirectAfterLogin():string;
 }

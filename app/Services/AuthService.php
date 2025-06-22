@@ -4,16 +4,15 @@ namespace App\Services;
 
 use App\Contracts\Services\AuthServiceInterface;
 use App\Contracts\Services\UserServiceInterface;
+use App\Events\Auth\PasswordResetRequested;
+use App\Events\Auth\UserRegistered;
 use App\Models\SocialAccount;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-
 class AuthService implements AuthServiceInterface
 {
     public function __construct(
@@ -24,14 +23,18 @@ class AuthService implements AuthServiceInterface
     {
         $user = $this->userService->createUser($data);
         
-        event(new Registered($user));
+        
+        event(new UserRegistered($user));
         
         return $user;
     }
 
     public function login(array $credentials): ?User
     {
-        if (Auth::attempt($credentials)) {
+        $remember = $credentials['remember'] ?? false;
+        unset($credentials['remember']);
+
+        if (Auth::attempt($credentials, $remember)) {
             return Auth::user();
         }
         
@@ -50,7 +53,7 @@ class AuthService implements AuthServiceInterface
         }
 
         if ($user->markEmailAsVerified()) {
-            event(new Verified($user));
+            $user->save();
             return true;
         }
 
@@ -59,7 +62,19 @@ class AuthService implements AuthServiceInterface
 
     public function sendPasswordResetLink(string $email): bool
     {
-        $status = Password::sendResetLink(['email' => $email]);
+        $user = $this->getUserByEmail($email);
+        
+        if (!$user) {
+            return false;
+        }
+
+        $status = Password::sendResetLink(
+            ['email' => $email],
+            function (User $user, string $token) {
+                
+                event(new PasswordResetRequested($user, $token));
+            }
+        );
         
         return $status === Password::RESET_LINK_SENT;
     }
@@ -70,12 +85,13 @@ class AuthService implements AuthServiceInterface
             $user->forceFill([
                 'password' => Hash::make($password)
             ])->setRememberToken(Str::random(60));
-
+            
             $user->save();
         });
 
         return $status === Password::PASSWORD_RESET;
     }
+
     public function handleProviderCallback(string $provider, object $socialUser): User
     {
         return DB::transaction(function () use ($provider, $socialUser) {
@@ -100,9 +116,14 @@ class AuthService implements AuthServiceInterface
                     'email' => $socialUser->getEmail(),
                     'avatar' => $socialUser->getAvatar(),
                     'password' => null,
-                    'email_verified_at' => now(),
+                    'email_verified_at' => now(), 
                     'role' => 'seller',
                 ]);
+            } else {
+                
+                if (!$user->hasVerifiedEmail()) {
+                    $user->markEmailAsVerified();
+                }
             }
             
             $socialAccount = SocialAccount::updateOrCreate(
@@ -120,14 +141,17 @@ class AuthService implements AuthServiceInterface
             return $user;
         });
     }
+
     public function getUserByEmail(string $email): ?User
     {
         return User::where('email', $email)->first();
     }
-     public function getAuthenticatedUser(): ?User
+
+    public function getAuthenticatedUser(): ?User
     {
         return Auth::user();
     }
+
     public function redirectAfterLogin(): string
     {
         $user = $this->getAuthenticatedUser();
@@ -135,6 +159,7 @@ class AuthService implements AuthServiceInterface
         if ($user->isAdmin()) {
             return route('admin.dashboard');
         }
+        
         return route('home');
     }
 }
