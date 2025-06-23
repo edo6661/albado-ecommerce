@@ -14,4 +14,5 @@ interface AuthServiceInterface
     public function sendPasswordResetLink(string $email): bool;
     public function resetPassword(array $data): bool;
     public function redirectAfterLogin():string;
+    public function handleProviderCallback(string $provider, object $socialUser): User;
 }

@@ -18,6 +18,9 @@
         </a>
         @endguest
         @auth
+        <a href="{{ route('profile.show') }}">
+            profile 
+        </a>
         
         <form id="logout-form" action="{{ route('logout') }}" method="POST">
             @csrf

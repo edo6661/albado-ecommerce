@@ -51,5 +51,25 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->role === UserRole::USER;
     }
+    public function hasSocialLogin(): bool
+    {
+        return $this->socialAccounts()->exists();
+    }
+
+    public function hasPassword(): bool
+    {
+        return !is_null($this->password);
+    }
+
+    public function isSocialOnlyUser(): bool
+    {
+        return $this->hasSocialLogin() && !$this->hasPassword();
+    }
+
+    public function getSocialProvider(): ?string
+    {
+        $socialAccount = $this->socialAccounts()->first();
+        return $socialAccount ? $socialAccount->provider : null;
+    }
 }
 

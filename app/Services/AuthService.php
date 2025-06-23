@@ -63,7 +63,7 @@ class AuthService implements AuthServiceInterface
     public function sendPasswordResetLink(string $email): bool
     {
         $user = $this->getUserByEmail($email);
-        
+            
         if (!$user) {
             return false;
         }

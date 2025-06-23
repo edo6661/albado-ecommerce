@@ -3,6 +3,7 @@
 namespace App\Listeners\Auth;
 
 use App\Events\Auth\PasswordResetRequested;
+use App\Mail\ResetPasswordMail;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Mail;
 class SendPasswordResetNotification

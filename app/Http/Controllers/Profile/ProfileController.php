@@ -1,12 +1,11 @@
 <?php
 
-
 namespace App\Http\Controllers\Profile;
 
-use App\Http\Controllers\Controller;
 use App\Contracts\Services\ProfileServiceInterface;
+use App\Contracts\Services\UserServiceInterface;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Profile\UpdateProfileRequest;
-use App\Exceptions\UserNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -14,55 +13,76 @@ use Illuminate\View\View;
 class ProfileController extends Controller
 {
     public function __construct(
-        protected ProfileServiceInterface $profileService
+        protected ProfileServiceInterface $profileService,
+        protected UserServiceInterface $userService
     ) {}
+
 
     public function show(Request $request): View
     {
-        $userId = auth()->id();
-        $profile = $this->profileService->getProfileByUserId($userId);
-        
-        return view('profile.show', compact('profile'));
+        $user = $request->user();
+        $profile = $this->profileService->getProfileByUserId($user->id);
+        return view('profile.show', compact('user', 'profile'));
     }
 
     public function edit(Request $request): View
     {
-        $userId = auth()->id();
-        $profile = $this->profileService->getProfileByUserId($userId);
+        $user = $request->user();
+        $profile = $this->profileService->getProfileByUserId($user->id);
         
-        return view('profile.edit', compact('profile'));
+        return view('profile.edit', compact('user', 'profile'));
     }
+
 
     public function update(UpdateProfileRequest $request): RedirectResponse
     {
         try {
-            $userId = auth()->id();
-            $profile = $this->profileService->updateProfile($userId, $request->validated());
+            $user = $request->user();
+            $validatedData = $request->validated();
             
-            return redirect()->route('profile.show')
-                           ->with('success', 'Profile berhasil diupdate.');
-        } catch (UserNotFoundException $e) {
-            abort(404, $e->getMessage());
-        } catch (\Exception $e) {
-            return back()->withInput()
-                        ->withErrors(['error' => 'Gagal mengupdate profile. Silakan coba lagi.']);
-        }
-    }
-
-    public function destroy(Request $request): RedirectResponse
-    {
-        try {
-            $userId = auth()->id();
-            $deleted = $this->profileService->deleteProfile($userId);
+            $userData = [];
+            $profileData = [];
             
-            if ($deleted) {
-                return redirect()->route('profile.show')
-                               ->with('success', 'Profile berhasil dihapus.');
+            if (isset($validatedData['name'])) {
+                $userData['name'] = $validatedData['name'];
             }
             
-            return back()->withErrors(['error' => 'Gagal menghapus profile.']);
+            if (isset($validatedData['email'])) {
+                $userData['email'] = $validatedData['email'];
+            }
+            
+            $hasPassword = !is_null($user->password);
+            
+            if (isset($validatedData['password']) && !empty($validatedData['password'])) {
+                $userData['password'] = $validatedData['password'];
+            }
+            
+            if (isset($validatedData['avatar'])) {
+                $profileData['avatar'] = $validatedData['avatar'];
+            }
+            
+            if (!empty($userData)) {
+                $this->userService->updateUser($user->id, $userData);
+            }
+            
+            if (!empty($profileData)) {
+                $this->profileService->updateProfile($user->id, $profileData);
+            }
+            
+            $message = 'Profil berhasil diperbarui!';
+            if (!$hasPassword && isset($validatedData['password']) && !empty($validatedData['password'])) {
+                $message = 'Profil berhasil diperbarui! Password telah berhasil diatur.';
+            }
+            
+            return redirect()
+                ->route('profile.show')
+                ->with('success', $message);
+                
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Gagal menghapus profile. Silakan coba lagi.']);
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan saat memperbarui profil: ' . $e->getMessage());
         }
     }
 }

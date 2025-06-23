@@ -12,12 +12,7 @@
         </div>
     </div>
 @endif
-@if(session('status'))
-        <div class="alert alert-success" role="alert">
-            <i class="fas fa-check-circle me-1"></i>
-            {{ session('status') }}
-        </div>
-@endif
+
 
 @if(session('error'))
     <div class="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded shadow-lg z-50" role="alert">
@@ -44,6 +39,21 @@
             </div>
             <div>
                 <span class="block sm:inline">{{ session('warning') }}</span>
+            </div>
+        </div>
+    </div>
+@endif
+
+@if(session('status'))
+    <div class="fixed top-4 right-4 bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded shadow-lg z-50" role="alert">
+        <div class="flex">
+            <div class="py-1">
+                <svg class="fill-current h-4 w-4 text-blue-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-6V7h-2v5h2zm0 2h-2v2h2v-2z"/>
+                </svg>
+            </div>
+            <div>
+                <span class="block sm:inline">{{ session('status') }}</span>
             </div>
         </div>
     </div>

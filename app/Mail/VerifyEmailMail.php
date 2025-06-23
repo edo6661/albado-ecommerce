@@ -10,28 +10,28 @@ use Illuminate\Queue\SerializesModels;
 
 class VerifyEmailMail extends Mailable
 {
-    use Queueable, SerializesModels;
+use Queueable, SerializesModels;
 
-    public function __construct(
-        public User $user,
-        public string $verificationUrl
-    ) {}
+public function __construct(
+    public User $user,
+    public string $verificationUrl
+) {}
 
-    public function envelope(): Envelope
-    {
-        return new Envelope(
-            subject: 'Verifikasi Email Anda - ' . config('app.name'),
-        );
-    }
+public function envelope(): Envelope
+{
+    return new Envelope(
+        subject: 'Verifikasi Email Anda - ' . config('app.name'),
+    );
+}
 
-    public function content(): Content
-    {
-        return new Content(
-            view: 'emails.verify-email',
-            with: [
-                'user' => $this->user,
-                'verificationUrl' => $this->verificationUrl,
-            ]
-        );
-    }
+public function content(): Content
+{
+    return new Content(
+        view: 'emails.verify-email',
+        with: [
+            'user' => $this->user,
+            'verificationUrl' => $this->verificationUrl,
+        ]
+    );
+}
 }

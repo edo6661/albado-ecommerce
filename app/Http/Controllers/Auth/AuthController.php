@@ -100,6 +100,7 @@ use Illuminate\View\View;class AuthController extends Controller
 
     public function sendResetLink(ForgotPasswordRequest $request): RedirectResponse
     {
+        $request->validated();
         $sent = $this->authService->sendPasswordResetLink($request->email);
         
         if ($sent) {
