@@ -58,8 +58,6 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => true,
             'report' => false,
-            // 'verify' => 'D:\aku\code\kerjaan\2025\php\fujiyama\Fujiyama_Technology_Solution\cacert.pem',
-
         ],
 
     ],

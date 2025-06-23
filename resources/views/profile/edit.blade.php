@@ -28,17 +28,17 @@
             @endif
 
             <div class="bg-white shadow-sm rounded-lg overflow-hidden">
-                <form method="POST" action="{{ route('profile.update') }}" class="space-y-6">
+                <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="space-y-6">
                     @csrf
                     @method('PUT')
 
                     <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-8">
                         <div class="flex items-center justify-center">
                             <div class="relative">
-                                @if(auth()->user()->profile?->avatar)
+                                @if($user->profile?->avatar)
                                     <img class="h-24 w-24 rounded-full border-4 border-white shadow-lg" 
-                                         src="{{ auth()->user()->profile->avatar }}" 
-                                         alt="Avatar {{ auth()->user()->name }}"
+                                         src="{{ $user->profile->avatar_url }}" 
+                                         alt="Avatar {{ $user->name }}"
                                          id="avatar-preview">
                                 @else
                                     <div class="h-24 w-24 rounded-full bg-white border-4 border-white shadow-lg flex items-center justify-center" id="avatar-preview">
@@ -59,25 +59,42 @@
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Profil</h3>
                             
                             <div>
-                                <label for="avatar" class="block text-sm font-medium text-gray-700">
-                                    URL Avatar
+                                <label for="avatar" class="block text-sm font-medium text-gray-700 mb-1">
+                                    {{ __('Image') }}
                                 </label>
-                                <div class="mt-1">
-                                    <input id="avatar" 
-                                           name="avatar" 
-                                           type="url" 
-                                           placeholder="https://example.com/avatar.jpg"
-                                           class="appearance-none block w-full px-3 py-2 border @error('avatar') border-red-300 @else border-gray-300 @enderror rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
-                                           value="{{ old('avatar', auth()->user()->profile?->avatar) }}"
-                                           x-data="{ value: '{{ old('avatar', auth()->user()->profile?->avatar) }}' }"
-                                           x-model="value"
-                                           x-on:input="updateAvatarPreview($event.target.value)">
+                                
+                                <div class="mt-1 flex items-center">
+                                    <div id="imagePreviewContainer" class="w-32 h-32 bg-gray-100 rounded-md overflow-hidden">
+                                        <img 
+                                            id="imagePreview"
+                                            src="{{ $profile->avatar_url }}" 
+                                            alt="{{ $user->name }}" 
+                                            class="w-full h-full object-cover"
+                                        >
+                                    </div>
+                                    
+                                    <div class="ml-5">
+                                        <input
+                                            type="file"
+                                            name="avatar"
+                                            id="image"
+                                            accept="image/*"
+                                            class="bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                            onchange="previewImage(this)"
+                                        />
+                                        <p class="mt-1 text-sm text-gray-500">
+                                            {{ __('
+                                                Empty if you do not want to change the image.
+                                            ') }}
+                                        </p>
+                                    </div>
                                 </div>
-                                @error('avatar')
-                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                
+                                @error('image')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
-                                <p class="mt-2 text-sm text-gray-500">
-                                    Masukkan URL gambar untuk avatar profil Anda
+                                <p class="mt-1 text-sm text-gray-500">
+                                    {{ __('Format: JPG, PNG, JPEG, GIF. Max 2MB.') }}
                                 </p>
                             </div>
                         </div>
@@ -97,7 +114,7 @@
                                                autocomplete="name"
                                                class="appearance-none block w-full px-3 py-2 border @error('name') border-red-300 @else border-gray-300 @enderror rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
                                                placeholder="Masukkan nama lengkap"
-                                               value="{{ old('name', auth()->user()->name) }}">
+                                               value="{{ old('name', $user->name) }}">
                                     </div>
                                     @error('name')
                                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -115,7 +132,7 @@
                                                autocomplete="email"
                                                class="appearance-none block w-full px-3 py-2 border @error('email') border-red-300 @else border-gray-300 @enderror rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
                                                placeholder="nama@example.com"
-                                               value="{{ old('email', auth()->user()->email) }}">
+                                               value="{{ old('email', $user->email) }}">
                                     </div>
                                     @error('email')
                                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -126,7 +143,7 @@
 
                         <div class="border-t border-gray-200 pt-6">
                             @php
-                                $hasPassword = !is_null(auth()->user()->password);
+                                $hasPassword = !is_null($user->password);
                             @endphp
                             
                             <h3 class="text-lg font-medium text-gray-900 mb-4">
@@ -210,21 +227,20 @@
     </div>
 
     <script>
-        function updateAvatarPreview(url) {
-            const preview = document.getElementById('avatar-preview');
-            if (url && url.trim() !== '') {
-                preview.innerHTML = `<img class="h-24 w-24 rounded-full border-4 border-white shadow-lg" src="${url}" alt="Avatar Preview" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div class="h-24 w-24 rounded-full bg-white border-4 border-white shadow-lg flex items-center justify-center" style="display: none;">
-                    <svg class="h-12 w-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-                    </svg>
-                </div>`;
-            } else {
-                preview.innerHTML = `<div class="h-24 w-24 rounded-full bg-white border-4 border-white shadow-lg flex items-center justify-center">
-                    <svg class="h-12 w-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-                    </svg>
-                </div>`;
+        function previewImage(input) {
+            const preview = document.getElementById('imagePreview');
+            const defaultIcon = document.getElementById('defaultIcon');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                    defaultIcon.classList.add('hidden');
+                }
+                
+                reader.readAsDataURL(input.files[0]);
             }
         }
     </script>

@@ -9,6 +9,7 @@ use App\Http\Requests\Profile\UpdateProfileRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -57,10 +58,17 @@ class ProfileController extends Controller
                 $userData['password'] = $validatedData['password'];
             }
             
-            if (isset($validatedData['avatar'])) {
-                $profileData['avatar'] = $validatedData['avatar'];
-            }
-            
+            if ($request->hasFile('avatar')) {
+                if (
+                    $user->profile && 
+                    $user->profile->avatar && 
+                    Storage::disk('s3')->exists($user->profile->avatar)
+                ) {
+                    Storage::disk('s3')->delete($user->profile->avatar);
+                }
+                $imagePath = $request->file('avatar')->store('default', 's3');
+                $profileData['avatar'] = $imagePath;
+            }       
             if (!empty($userData)) {
                 $this->userService->updateUser($user->id, $userData);
             }
@@ -68,6 +76,7 @@ class ProfileController extends Controller
             if (!empty($profileData)) {
                 $this->profileService->updateProfile($user->id, $profileData);
             }
+
             
             $message = 'Profil berhasil diperbarui!';
             if (!$hasPassword && isset($validatedData['password']) && !empty($validatedData['password'])) {

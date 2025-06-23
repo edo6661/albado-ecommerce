@@ -36,10 +36,10 @@
                 <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-8">
                     <div class="flex items-center justify-center">
                         <div class="relative">
-                            @if(auth()->user()->profile?->avatar)
+                            @if($user->profile?->avatar)
                                 <img class="h-24 w-24 rounded-full border-4 border-white shadow-lg" 
-                                     src="{{ auth()->user()->profile->avatar }}" 
-                                     alt="Avatar {{ auth()->user()->name }}">
+                                     src="{{ $user->profile->avatar_url }}" 
+                                     alt="Avatar {{ $user->name }}">
                             @else
                                 <div class="h-24 w-24 rounded-full bg-white border-4 border-white shadow-lg flex items-center justify-center">
                                     <svg class="h-12 w-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -50,11 +50,11 @@
                         </div>
                     </div>
                     <div class="text-center mt-4">
-                        <h2 class="text-xl font-bold text-white">{{ auth()->user()->name }}</h2>
-                        <p class="text-indigo-100 text-sm mt-1">{{ auth()->user()->email }}</p>
+                        <h2 class="text-xl font-bold text-white">{{ $user->name }}</h2>
+                        <p class="text-indigo-100 text-sm mt-1">{{ $user->email }}</p>
                         <div class="mt-2">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white text-indigo-800">
-                                {{ auth()->user()->role->value === 'admin' ? 'Administrator' : 'Pengguna' }}
+                                {{ $user->role->value === 'admin' ? 'Administrator' : 'Pengguna' }}
                             </span>
                         </div>
                     </div>
@@ -69,16 +69,16 @@
                             <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Nama Lengkap</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ auth()->user()->name }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900">{{ $user->name }}</dd>
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Alamat Email</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ auth()->user()->email }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900">{{ $user->email }}</dd>
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Status Email</dt>
                                     <dd class="mt-1 text-sm">
-                                        @if(auth()->user()->email_verified_at)
+                                        @if($user->email_verified_at)
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                 <svg class="mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8">
                                                     <circle cx="4" cy="4" r="3"></circle>
@@ -97,7 +97,7 @@
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Bergabung Sejak</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ auth()->user()->created_at->format('d F Y') }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900">{{ $user->created_at->format('d F Y') }}</dd>
                                 </div>
                             </dl>
                         </div>
@@ -109,13 +109,13 @@
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Peran</dt>
                                     <dd class="mt-1 text-sm text-gray-900">
-                                        {{ auth()->user()->role->value === 'admin' ? 'Administrator' : 'Pengguna' }}
+                                        {{ $user->role->value === 'admin' ? 'Administrator' : 'Pengguna' }}
                                     </dd>
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Terakhir Diperbarui</dt>
                                     <dd class="mt-1 text-sm text-gray-900">
-                                        {{ auth()->user()->updated_at->format('d F Y, H:i') }}
+                                        {{ $user->updated_at->format('d F Y, H:i') }}
                                     </dd>
                                 </div>
                             </dl>

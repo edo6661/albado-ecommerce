@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Contracts\Services\AuthServiceInterface;
 use App\Contracts\Services\UserServiceInterface;
+use App\Enums\UserRole;
 use App\Events\Auth\PasswordResetRequested;
 use App\Events\Auth\UserRegistered;
+use App\Models\Profile;
 use App\Models\SocialAccount;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -114,16 +116,17 @@ class AuthService implements AuthServiceInterface
                 $user = User::create([
                     'name' => $socialUser->getName(),
                     'email' => $socialUser->getEmail(),
-                    'avatar' => $socialUser->getAvatar(),
                     'password' => null,
                     'email_verified_at' => now(), 
-                    'role' => 'seller',
+                    'role' => UserRole::USER,
                 ]);
-            } else {
-                
-                if (!$user->hasVerifiedEmail()) {
-                    $user->markEmailAsVerified();
-                }
+                Profile::create([
+                    'user_id' => $user->id,
+                    'avatar' => $socialUser->getAvatar(),
+                ]);
+            } 
+            if (!$user->hasVerifiedEmail()) {
+                $user->markEmailAsVerified();
             }
             
             $socialAccount = SocialAccount::updateOrCreate(
@@ -141,6 +144,7 @@ class AuthService implements AuthServiceInterface
             return $user;
         });
     }
+    
 
     public function getUserByEmail(string $email): ?User
     {

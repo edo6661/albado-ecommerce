@@ -16,7 +16,7 @@ class UpdateProfileRequest extends FormRequest
     {
         $userId = $this->user()->id;
         
-        return [
+        $rules = [
             'name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'email' => [
                 'sometimes', 
@@ -28,8 +28,9 @@ class UpdateProfileRequest extends FormRequest
             'password' => ['sometimes', 'nullable', 'string', 'min:8', 'confirmed'],
             'password_confirmation' => ['sometimes', 'nullable', 'string', 'min:8'],
             
-            'avatar' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'avatar' => ['sometimes', 'nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ];
+        return $rules;
     }
 
     public function messages(): array
@@ -43,9 +44,9 @@ class UpdateProfileRequest extends FormRequest
             'password.min' => 'Password minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
             'password_confirmation.min' => 'Konfirmasi password minimal 8 karakter.',
-            
-            'avatar.string' => 'Avatar harus berupa teks.',
-            'avatar.max' => 'Avatar maksimal 255 karakter.',
+            'avatar.image' => 'Avatar harus berupa gambar.',
+            'avatar.mimes' => 'Format gambar harus jpeg, png, jpg, atau gif.',
+            'avatar.max' => 'Ukuran Avatar maksimal 2MB.',
         ];
     }
     protected function prepareForValidation(): void
