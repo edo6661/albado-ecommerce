@@ -5,6 +5,7 @@ namespace App\Contracts\Services;
 
 use App\Models\Profile;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 
 interface ProfileServiceInterface
 {
@@ -12,4 +13,5 @@ interface ProfileServiceInterface
     public function createProfile(User $user, array $data): Profile;
     public function updateProfile(int $userId, array $data): ?Profile;
     public function deleteProfile(int $userId): bool;
+    public function updateUserProfile(User $user, array $validatedData, ?UploadedFile $avatar = null): array;
 }
