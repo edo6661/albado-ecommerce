@@ -52,7 +52,7 @@ class UserController extends Controller
         try {
             $user = $this->userService->createUser($request->validated());
             
-            return redirect()->route('users.show', $user->id)
+            return redirect()->route('admin.users.show', $user->id)
                            ->with('success', 'User berhasil dibuat.');
         } catch (\Exception $e) {
             return back()->withInput()
@@ -80,7 +80,7 @@ class UserController extends Controller
         try {
             $user = $this->userService->updateUser($id, $request->validated());
             
-            return redirect()->route('users.show', $user->id)
+            return redirect()->route('admin.users.show', $user->id)
                            ->with('success', 'User berhasil diupdate.');
         } catch (UserNotFoundException $e) {
             abort(404, $e->getMessage());
@@ -96,7 +96,7 @@ class UserController extends Controller
             $deleted = $this->userService->deleteUser($id);
             
             if ($deleted) {
-                return redirect()->route('users.index')
+                return redirect()->route('admin.users.index')
                                ->with('success', 'User berhasil dihapus.');
             }
             

@@ -29,6 +29,14 @@
             </button>
         </form>
         @endauth
+        @if(auth()->check() && auth()->user()->isAdmin()) 
+            <a href="{{ route('admin.dashboard') }}">
+                dashboard
+            </a>
+            <a href="{{ route('admin.products.index') }}">
+                products
+            </a>
+        @endif
     </div>
       
 </header>

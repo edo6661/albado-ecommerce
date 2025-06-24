@@ -8,8 +8,11 @@ Route::get('/', function () {
 Route::middleware(['auth','verified'])->group(function () {
     require __DIR__ . '/shared/profile.php';
     Route::middleware('admin')->group(function () {
-        require __DIR__ . '/admin/user.php';
-        require __DIR__ . '/admin/dashboard.php';
+        Route::name('admin.')->prefix('admin')->group(function () {
+            require __DIR__ . '/admin/user.php';
+            require __DIR__ . '/admin/product.php';
+            require __DIR__ . '/admin/dashboard.php';
+        });
     });
 });
 

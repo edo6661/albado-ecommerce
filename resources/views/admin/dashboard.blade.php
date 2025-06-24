@@ -1,3 +1,6 @@
-<div>
-    <!-- Very little is needed to make a happy life. - Marcus Aurelius -->
-</div>
+<x-layouts.plain-app>
+    <p class="text-red-500">
+        test
+    </p>
+
+</x-layouts.plain-app>

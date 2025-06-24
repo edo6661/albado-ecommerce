@@ -1,0 +1,107 @@
+<?php
+
+namespace App\Services;
+
+use App\Contracts\Repositories\ProductRepositoryInterface;
+use App\Contracts\Services\ProductServiceInterface;
+use App\Exceptions\ProductNotFoundException;
+use App\Models\Product;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+
+class ProductService implements ProductServiceInterface
+{
+    public function __construct(protected ProductRepositoryInterface $productRepository) {}
+
+    public function getPaginatedProducts(int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->productRepository->getAllPaginated($perPage);
+    }
+
+    public function getProductById(int $id): ?Product
+    {
+        $product = $this->productRepository->findById($id);
+        if (!$product) {
+            throw new ProductNotFoundException("Produk dengan ID {$id} tidak ditemukan.");
+        }
+        return $product;
+    }
+
+    public function createProduct(array $data, array $images = []): Product
+    {
+        return DB::transaction(function () use ($data, $images) {
+            
+            $product = $this->productRepository->create($data);
+
+            
+            if (!empty($images)) {
+                $imageData = [];
+                foreach ($images as $index => $imageFile) {
+                    $path = $imageFile->store('products', 's3');
+                    $imageData[] = [
+                        'product_id' => $product->id,
+                        'path' => $path,
+                        'order' => $index + 1,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+                
+                $product->images()->insert($imageData);
+            }
+
+            return $product;
+        });
+    }
+
+    public function updateProduct(int $id, array $data, array $images = []): Product
+    {
+        return DB::transaction(function () use ($id, $data, $images) {
+            $product = $this->getProductById($id);
+
+            
+            $this->productRepository->update($product, $data);
+
+            
+            if (!empty($images)) {
+                
+                foreach ($product->images as $oldImage) {
+                    Storage::disk('public')->delete($oldImage->path);
+                    $oldImage->delete();
+                }
+
+                $imageData = [];
+                foreach ($images as $index => $imageFile) {
+                    $path = $imageFile->store('products', 'public');
+                    $imageData[] = [
+                        'product_id' => $product->id,
+                        'path' => $path,
+                        'order' => $index + 1,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+                $product->images()->insert($imageData);
+            }
+
+            return $product->fresh(['category', 'images']);
+        });
+    }
+
+    public function deleteProduct(int $id): bool
+    {
+        return DB::transaction(function () use ($id) {
+            $product = $this->getProductById($id);
+
+            
+            foreach ($product->images as $image) {
+                if (Storage::disk('s3')->exists($image->path)) {
+                    Storage::disk('s3')->delete($image->path);
+                }
+            }
+            
+            return $this->productRepository->delete($product);
+        });
+    }
+}

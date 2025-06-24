@@ -97,7 +97,7 @@ class ProfileService implements ProfileServiceInterface
         
         $this->deleteOldAvatar($user);
         
-        $imagePath = $avatar->store('default', 's3');
+        $imagePath = $avatar->store('avatar', 's3');
         
         return ['avatar' => $imagePath];
     }
