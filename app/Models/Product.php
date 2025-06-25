@@ -18,7 +18,6 @@ use HasFactory;
         'description',
         'price',
         'stock',
-        'sku',
         'is_active',
         'discount_price'
     ];

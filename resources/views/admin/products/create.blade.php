@@ -219,7 +219,7 @@
                                     <template x-for="(image, index) in imagePreview" :key="index">
                                         <div class="relative">
                                             <img :src="image.url" :alt="'Preview ' + (index + 1)" 
-                                                 class="h-24 w-24 object-cover rounded-lg border-2 border-gray-200">
+                                                 class="object-contain rounded-lg border-2 border-gray-200">
                                             <button type="button" 
                                                     @click="removeImage(index)"
                                                     class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">

@@ -16,6 +16,7 @@ class StoreProductRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255|unique:products,name',
+            'slug' => 'required|string|unique:products,slug',
             'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
@@ -24,18 +25,6 @@ class StoreProductRequest extends FormRequest
             'is_active' => 'sometimes|boolean',
             'images' => 'required|array|min:1', 
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048', 
-
-        ];
-    }
-    public function messages(): array
-    {
-        return [
-            'name.required' => 'Nama produk wajib diisi.',
-            'category_id.required' => 'Kategori produk wajib dipilih.',
-            'price.required' => 'Harga produk wajib diisi.',
-            'stock.required' => 'Stok produk wajib diisi.',
-            'images.required' => 'Setidaknya satu gambar produk wajib diunggah.',
-            'images.*.image' => 'Setiap file yang diunggah harus berupa gambar.',
         ];
     }
     protected function prepareForValidation()

@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Contracts\Repositories\ProductRepositoryInterface;
 use App\Models\Product;
+use App\Utils\StringHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ProductRepository implements ProductRepositoryInterface
@@ -22,7 +23,9 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function create(array $data): Product
     {
-        return $this->model->create($data);
+        return $this->model->create(
+            $data
+        );
     }
 
     public function update(Product $product, array $data): bool

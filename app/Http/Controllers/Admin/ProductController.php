@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Admin;
 
 use App\Contracts\Services\ProductServiceInterface;
@@ -38,9 +37,8 @@ class ProductController extends Controller
             $validatedData = $request->validated();
             $images = $request->file('images', []);
             unset($validatedData['images']); 
-
+            
             $this->productService->createProduct($validatedData, $images);
-
             return redirect()->route('admin.products.index')->with('success', 'Produk berhasil dibuat.');
         } catch (\Exception $e) {
             return back()->withInput()->withErrors(['error' => 'Gagal membuat produk: ' . $e->getMessage()]);
@@ -73,12 +71,16 @@ class ProductController extends Controller
         try {
             $validatedData = $request->validated();
             $images = $request->file('images', []);
+            $imagesToDelete = $request->get('delete_images', []);
+            
             if (array_key_exists('images', $validatedData)) {
                 unset($validatedData['images']);
             }
-
-            $this->productService->updateProduct($id, $validatedData, $images);
-
+            if (array_key_exists('delete_images', $validatedData)) {
+                unset($validatedData['delete_images']);
+            }
+            
+            $this->productService->updateProduct($id, $validatedData, $images, $imagesToDelete);
             return redirect()->route('admin.products.index')->with('success', 'Produk berhasil diperbarui.');
         } catch (ProductNotFoundException $e) {
             abort(404, $e->getMessage());
@@ -106,13 +108,12 @@ class ProductController extends Controller
                 'ids' => 'required|array',
                 'ids.*' => 'integer|exists:products,id'
             ]);
-
+            
             $deletedCount = $this->productService->deleteMultipleProducts($validated['ids']);
-
             $message = $deletedCount > 0 
                 ? "Berhasil menghapus {$deletedCount} produk."
                 : "Tidak ada produk yang dipilih untuk dihapus.";
-
+                
             return redirect()->route('admin.products.index')->with('success', $message);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return back()->withErrors(['error' => 'Data ID tidak valid.']);
@@ -121,4 +122,13 @@ class ProductController extends Controller
         }
     }
 
+    public function deleteImage(int $productId, int $imageId): JsonResponse
+    {
+        try {
+            $this->productService->deleteProductImage($productId, $imageId);
+            return response()->json(['success' => true, 'message' => 'Gambar berhasil dihapus']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
 }

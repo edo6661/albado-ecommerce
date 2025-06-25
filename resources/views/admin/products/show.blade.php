@@ -122,12 +122,6 @@
                                 </span>
                             </div>
 
-                            {{-- SKU --}}
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
-                                <p class="text-sm text-gray-900 font-mono bg-gray-100 px-3 py-1 rounded">{{ $product->sku ?? 'Tidak ada SKU' }}</p>
-                            </div>
-
                             {{-- Status --}}
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>

@@ -1,4 +1,3 @@
-{{-- resources/views/admin/products/edit.blade.php --}}
 <x-layouts.plain-app>
     <x-slot:title>Edit Produk</x-slot:title>
 
@@ -24,23 +23,9 @@
                 </div>
             </div>
 
-            {{-- Error & Success Messages --}}
-            @if ($errors->any() || session('success') || session('error'))
+            @if ($errors->any())
                 <div class="mb-6">
-                    @if (session('success'))
-                        <div class="rounded-md bg-green-50 p-4">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm font-medium text-green-800">{{ session('success') }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
+                    
                     @if ($errors->any())
                         <div class="rounded-md bg-red-50 p-4 mt-4">
                             <div class="flex">
@@ -71,7 +56,6 @@
                     @method('PUT')
 
                     <div class="px-6 py-6 space-y-6">
-                        {{-- Basic Information --}}
                         <div>
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Dasar</h3>
                             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -119,7 +103,6 @@
                             </div>
                         </div>
 
-                        {{-- Pricing --}}
                         <div class="border-t border-gray-200 pt-6">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Harga</h3>
                             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -142,30 +125,32 @@
                             </div>
                         </div>
 
-                        {{-- Images --}}
-                        <div class="border-t border-gray-200 pt-6">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">Gambar Produk</h3>
-                            {{-- Existing Images --}}
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Gambar Saat Ini</label>
-                                @if($product->images->isNotEmpty())
-                                    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                                        @foreach($product->images as $image)
-                                            <div class="relative group">
-                                                <img src="{{ $image->path_url }}" alt="Gambar produk" class="h-24 w-full object-cover rounded-lg">
-                                                <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    {{-- Di sini Anda bisa menambahkan form untuk menghapus gambar individu --}}
-                                                </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Gambar Saat Ini</label>
+                            @if($product->images->isNotEmpty())
+                                <div id="existing-images" class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                                    @foreach($product->images as $image)
+                                        <div class="relative group" id="image-{{ $image->id }}">
+                                            <img src="{{ $image->path_url }}" alt="Gambar produk" class="h-24 w-full object-cover rounded-lg">
+                                            
+                                            <div class="absolute inset-0  flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                                                <button type="button" onclick="deleteExistingImage({{ $product->id }}, {{ $image->id }})"
+                                                        class="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">
+                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                    </svg>
+                                                </button>
                                             </div>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <p class="text-sm text-gray-500">Tidak ada gambar untuk produk ini.</p>
-                                @endif
-                            </div>
-                            {{-- Add New Images --}}
-                            <div>
-                                <label for="images" class="block text-sm font-medium text-gray-700">Tambah Gambar Baru</label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">Arahkan kursor ke gambar untuk menghapusnya.</p>
+                            @else
+                                <p class="text-sm text-gray-500">Tidak ada gambar untuk produk ini.</p>
+                            @endif
+                        </div>
+                        <div>
+                                <label for="images" class="block text-sm font-medium text-gray-700">Ganti Dengan Gambar Baru</label>
                                 <div class="mt-1">
                                     <input type="file" name="images[]" id="images" multiple accept="image/*"
                                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
@@ -174,7 +159,6 @@
                                 @error('images.*')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
                                 <p class="mt-1 text-xs text-gray-500">Anda dapat memilih beberapa file sekaligus.</p>
                             </div>
-                            {{-- New Image Preview --}}
                             <div x-show="imagePreview.length > 0" class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                                 <template x-for="(image, index) in imagePreview" :key="index">
                                     <div class="relative">
@@ -185,9 +169,7 @@
                                     </div>
                                 </template>
                             </div>
-                        </div>
 
-                        {{-- Status --}}
                         <div class="border-t border-gray-200 pt-6">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Status</h3>
                             <div class="flex items-center">
@@ -197,7 +179,6 @@
                         </div>
                     </div>
 
-                    {{-- Actions --}}
                     <div class="bg-gray-50 px-6 py-4 flex justify-between items-center">
                         <a href="{{ route('admin.products.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Batal</a>
                         <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
@@ -234,6 +215,54 @@
                     fileInput.files = dt.files;
                 }
             }
+        }
+        function deleteExistingImage(productId, imageId) {
+            if (!confirm('Apakah Anda yakin ingin menghapus gambar ini?')) {
+                return;
+            }
+            
+            const imageElement = document.getElementById(`image-${imageId}`);
+            
+            fetch(`/admin/products/${productId}/images/${imageId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    
+                    imageElement.remove();
+                    
+                    
+                    const remainingImages = document.querySelectorAll('#existing-images > div');
+                    if (remainingImages.length === 0) {
+                        document.getElementById('existing-images').innerHTML = '<p class="text-sm text-gray-500 col-span-full">Tidak ada gambar untuk produk ini.</p>';
+                    }
+                    
+                    showNotification('Gambar berhasil dihapus', 'success');
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat menghapus gambar');
+            });
+        }
+
+        
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-md z-50 ${type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
         }
     </script>
 </x-layouts.plain-app>

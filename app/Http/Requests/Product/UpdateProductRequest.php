@@ -18,6 +18,7 @@ class UpdateProductRequest extends FormRequest
 
         return [
             'name' => 'sometimes|required|string|max:255|unique:products,name,' . $productId,
+            'slug' => 'required|string|unique:products,slug,' . $productId,
             'category_id' => 'sometimes|required|exists:categories,id',
             'description' => 'nullable|string',
             'price' => 'sometimes|required|numeric|min:0',
@@ -26,17 +27,6 @@ class UpdateProductRequest extends FormRequest
             'is_active' => 'sometimes|boolean',
             'images' => 'nullable|array', 
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-        ];
-    }
-    public function messages(): array
-    {
-        return [
-            'name.required' => 'Nama produk wajib diisi.',
-            'category_id.required' => 'Kategori produk wajib dipilih.',
-            'price.required' => 'Harga produk wajib diisi.',
-            'stock.required' => 'Stok produk wajib diisi.',
-            'images.required' => 'Setidaknya satu gambar produk wajib diunggah.',
-            'images.*.image' => 'Setiap file yang diunggah harus berupa gambar.',
         ];
     }
      protected function prepareForValidation()

@@ -59,21 +59,20 @@ class ProductService implements ProductServiceInterface
     {
         return DB::transaction(function () use ($id, $data, $images) {
             $product = $this->getProductById($id);
-
             
             $this->productRepository->update($product, $data);
-
+            
             
             if (!empty($images)) {
                 
                 foreach ($product->images as $oldImage) {
-                    Storage::disk('public')->delete($oldImage->path);
+                    Storage::disk('s3')->delete($oldImage->path); 
                     $oldImage->delete();
                 }
-
+                
                 $imageData = [];
                 foreach ($images as $index => $imageFile) {
-                    $path = $imageFile->store('products', 'public');
+                    $path = $imageFile->store('products', 's3'); 
                     $imageData[] = [
                         'product_id' => $product->id,
                         'path' => $path,
@@ -84,7 +83,7 @@ class ProductService implements ProductServiceInterface
                 }
                 $product->images()->insert($imageData);
             }
-
+            
             return $product->fresh(['category', 'images']);
         });
     }
@@ -132,6 +131,23 @@ class ProductService implements ProductServiceInterface
             }
             
             return $deletedCount;
+        });
+    }
+    public function deleteProductImage(int $productId, int $imageId): bool
+    {
+        return DB::transaction(function () use ($productId, $imageId) {
+            $product = $this->getProductById($productId);
+            $image = $product->images()->find($imageId);
+            
+            if (!$image) {
+                return false;
+            }
+            
+            if (Storage::disk('s3')->exists($image->path)) {
+                Storage::disk('s3')->delete($image->path);
+            }
+            
+            return $image->delete();
         });
     }
 }
