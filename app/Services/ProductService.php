@@ -104,4 +104,34 @@ class ProductService implements ProductServiceInterface
             return $this->productRepository->delete($product);
         });
     }
+
+    
+    public function deleteMultipleProducts(array $ids): int
+    {
+        return DB::transaction(function () use ($ids) {
+            $deletedCount = 0;
+            
+            foreach ($ids as $id) {
+                try {
+                    $product = $this->getProductById($id);
+                    
+                    
+                    foreach ($product->images as $image) {
+                        if (Storage::disk('s3')->exists($image->path)) {
+                            Storage::disk('s3')->delete($image->path);
+                        }
+                    }
+                    
+                    if ($this->productRepository->delete($product)) {
+                        $deletedCount++;
+                    }
+                } catch (ProductNotFoundException $e) {
+                    
+                    continue;
+                }
+            }
+            
+            return $deletedCount;
+        });
+    }
 }

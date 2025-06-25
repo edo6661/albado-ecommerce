@@ -12,4 +12,5 @@ interface ProductServiceInterface
     public function createProduct(array $data, array $images = []): Product;
     public function updateProduct(int $id, array $data, array $images = []): Product;
     public function deleteProduct(int $id): bool;
+    public function deleteMultipleProducts(array $ids): int;
 }

@@ -10,6 +10,7 @@ use App\Exceptions\ProductNotFoundException;
 use App\Models\Category;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -97,4 +98,27 @@ class ProductController extends Controller
             return back()->withErrors(['error' => 'Gagal menghapus produk: ' . $e->getMessage()]);
         }
     }
+
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        try {
+            $validated = $request->validate([
+                'ids' => 'required|array',
+                'ids.*' => 'integer|exists:products,id'
+            ]);
+
+            $deletedCount = $this->productService->deleteMultipleProducts($validated['ids']);
+
+            $message = $deletedCount > 0 
+                ? "Berhasil menghapus {$deletedCount} produk."
+                : "Tidak ada produk yang dipilih untuk dihapus.";
+
+            return redirect()->route('admin.products.index')->with('success', $message);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors(['error' => 'Data ID tidak valid.']);
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Gagal menghapus produk secara massal: ' . $e->getMessage()]);
+        }
+    }
+
 }
