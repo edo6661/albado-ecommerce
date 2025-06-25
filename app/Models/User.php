@@ -71,5 +71,19 @@ class User extends Authenticatable implements MustVerifyEmail
         $socialAccount = $this->socialAccounts()->first();
         return $socialAccount ? $socialAccount->provider : null;
     }
+    public function cart(): HasOne
+    {
+        return $this->hasOne(Cart::class);
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function getOrCreateCart(): Cart
+    {
+        return $this->cart ?: $this->cart()->create();
+    }
 }
 
