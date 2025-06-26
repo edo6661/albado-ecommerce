@@ -97,7 +97,7 @@ class OrderController extends Controller
             
             $this->orderService->updateOrderStatus($id, $validatedData['status']);
             
-            return redirect()->route('admin.orders.show', $id)->with('success', 'Status order berhasil diperbarui.');
+            return redirect()->route('admin.orders.index', $id)->with('success', 'Status order berhasil diperbarui.');
         } catch (OrderNotFoundException $e) {
             abort(404, $e->getMessage());
         } catch (\Exception $e) {
@@ -120,18 +120,7 @@ class OrderController extends Controller
         }
     }
 
-    public function destroy(int $id): RedirectResponse
-    {
-        try {
-            $this->orderService->deleteOrder($id);
-            
-            return redirect()->route('admin.orders.index')->with('success', 'Order berhasil dihapus.');
-        } catch (OrderNotFoundException $e) {
-            abort(404, $e->getMessage());
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Gagal menghapus order: ' . $e->getMessage()]);
-        }
-    }
+    
 
     public function statistics(): JsonResponse
     {

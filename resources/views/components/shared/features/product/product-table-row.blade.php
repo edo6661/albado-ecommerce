@@ -100,22 +100,28 @@
     {{-- Aksi --}}
     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
         <div class="flex items-center space-x-2">
-            <a href="{{ route('admin.products.show', $product->id) }}" 
-               class="text-indigo-600 hover:text-indigo-900 transition duration-150 ease-in-out"
-               title="Lihat Detail">
-                <i class="fas fa-eye"></i>
-            </a>
-            <a href="{{ route('admin.products.edit', $product->id) }}" 
-               class="text-yellow-600 hover:text-yellow-900 transition duration-150 ease-in-out"
-               title="Edit Produk">
-                <i class="fas fa-edit"></i>
-            </a>
-            <button
-                class="text-red-600 hover:text-red-900 transition duration-150 ease-in-out"
+            <x-shared.button
+                href="{{ route('admin.products.show', $product->id) }}"
+                variant="primary"
+                size="sm"
+                icon='<i class="fas fa-eye"></i>'
+            >
+            </x-shared.button>
+            <x-shared.button
+                href="{{ route('admin.products.edit', $product->id) }}"
+                variant="warning"
+                size="sm"
+                icon='<i class="fas fa-edit"></i>'
+            >
+            </x-shared.button>
+              <x-shared.button
                 @click="confirmDelete({{ $product->id }}, '{{ e($product->name) }}')"
-                title="Hapus Produk">
-                <i class="fas fa-trash"></i>
-            </button>
+                variant="danger"
+                size="sm"
+                icon='<i class="fas fa-trash"></i>'
+            >
+            </x-shared.button>
+            
         </div>
     </td>
 </tr>

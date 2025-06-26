@@ -188,7 +188,7 @@
             </div>
         </div>
 
-        <x-shared.features.order.order-show-modals :order="$order" />
+        <x-shared.features.order.show-modals :order="$order" />
     </div>
 
     <script>
@@ -244,7 +244,7 @@
                         const methodInput = document.createElement('input');
                         methodInput.type = 'hidden';
                         methodInput.name = '_method';
-                        methodInput.value = 'PUT';
+                        methodInput.value = 'PATCH';
                         form.appendChild(methodInput);
                         
                         const statusInput = document.createElement('input');
@@ -285,7 +285,7 @@
                         const methodInput = document.createElement('input');
                         methodInput.type = 'hidden';
                         methodInput.name = '_method';
-                        methodInput.value = 'PUT';
+                        methodInput.value = 'PATCH';
                         form.appendChild(methodInput);
                         
                         document.body.appendChild(form);

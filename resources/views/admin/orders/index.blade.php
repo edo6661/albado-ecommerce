@@ -20,7 +20,6 @@
         
         <x-shared.features.order.order-modals
             :status-options="$statusOptions"
-            "
         />
     </div>
     
@@ -142,7 +141,7 @@
                         const methodInput = document.createElement('input');
                         methodInput.type = 'hidden';
                         methodInput.name = '_method';
-                        methodInput.value = 'PUT';
+                        methodInput.value = 'PATCH';
                         form.appendChild(methodInput);
                         
                         const statusInput = document.createElement('input');
@@ -180,7 +179,6 @@
                         minimumFractionDigits: 0
                     }).format(amount);
                 },
-                
                 getStatusBadgeClass(status) {
                     const statusClasses = {
                         'pending': 'bg-yellow-100 text-yellow-800',

@@ -36,7 +36,6 @@
                 size="sm"
                 icon='<i class="fas fa-eye"></i>'
             >
-                Detail
             </x-shared.button>
             
             <x-shared.button
@@ -45,17 +44,8 @@
                 size="sm"
                 icon='<i class="fas fa-edit"></i>'
             >
-                Status
             </x-shared.button>
-            
-            <x-shared.button
-                @click="confirmDelete({{ $order->id }}, '{{ $order->order_number }}')"
-                variant="danger"
-                size="sm"
-                icon='<i class="fas fa-trash"></i>'
-            >
-                Hapus
-            </x-shared.button>
+          
         </div>
     </td>
 </tr>

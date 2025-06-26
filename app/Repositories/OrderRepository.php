@@ -29,12 +29,10 @@ class OrderRepository implements OrderRepositoryInterface
         $query = $this->model->with(['user', 'items.product', 'transaction'])
             ->orderBy('created_at', 'desc');
 
-        // Filter berdasarkan status
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        // Filter berdasarkan tanggal
         if (!empty($filters['date_from'])) {
             $query->whereDate('created_at', '>=', $filters['date_from']);
         }
@@ -43,12 +41,10 @@ class OrderRepository implements OrderRepositoryInterface
             $query->whereDate('created_at', '<=', $filters['date_to']);
         }
 
-        // Filter berdasarkan user
         if (!empty($filters['user_id'])) {
             $query->where('user_id', $filters['user_id']);
         }
 
-        // Search berdasarkan order number atau nama user
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('order_number', 'like', '%' . $filters['search'] . '%')
