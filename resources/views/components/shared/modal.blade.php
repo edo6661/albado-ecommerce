@@ -98,19 +98,8 @@
     $closeHandler = $onClose ?? 'false';
     $backdropHandler = $backdrop ? $closeHandler : '';
 @endphp
-<div x-data="{ 
-        modalShow: false,
-        init() {
-            this.$nextTick(() => {
-                setTimeout(() => {
-                    this.modalShow = {{ $show }};
-                }, 10);
-            });
-        }
-     }"
-     x-init="modalShow = {{ $show }}"
-     x-show="modalShow"
-     x-cloak
+
+<div x-show="{{ $show }}"
      @if($animation)
      x-transition:enter="{{ $enterAnimation }}"
      x-transition:enter-start="{{ $enterStartAnimation }}"
@@ -120,10 +109,11 @@
      x-transition:leave-end="{{ $leaveEndAnimation }}"
      @endif
      @if($backdropHandler)
-     @click.self="modalShow = false"
+     @click.self="{{ $backdropHandler }}"
      @endif
      class="{{ $overlayClasses }}"
-     {{ $attributes->whereStartsWith('x-') }}>
+     {{ $attributes->whereStartsWith('x-') }}
+     style="display: none;">
     
     <div class="{{ $modalClasses }} {{ $containerClass }}">
         

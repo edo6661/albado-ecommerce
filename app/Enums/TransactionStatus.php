@@ -20,13 +20,13 @@ enum TransactionStatus: string
     public function label(): string
     {
         return match($this) {
-            self::PENDING => 'Menunggu Pembayaran',
-            self::SETTLEMENT => 'Pembayaran Berhasil',
-            self::CAPTURE => 'Pembayaran Ditangkap',
-            self::DENY => 'Pembayaran Ditolak',
-            self::CANCEL => 'Pembayaran Dibatalkan',
-            self::EXPIRE => 'Pembayaran Kedaluwarsa',
-            self::FAILURE => 'Pembayaran Gagal',
+            self::PENDING => 'Menunggu',
+            self::SETTLEMENT => 'Berhasil',
+            self::CAPTURE => 'Berhasil',
+            self::DENY => 'Ditolak',
+            self::CANCEL => 'Dibatalkan',
+            self::EXPIRE => 'Kedaluwarsa',
+            self::FAILURE => 'Gagal',
         };
     }
 
@@ -43,5 +43,14 @@ enum TransactionStatus: string
     public function isPending(): bool
     {
         return $this === self::PENDING;
+    }
+
+    public function getColor(): string
+    {
+        return match($this) {
+            self::PENDING => 'warning',
+            self::SETTLEMENT, self::CAPTURE => 'success',
+            self::DENY, self::CANCEL, self::EXPIRE, self::FAILURE => 'danger',
+        };
     }
 }
