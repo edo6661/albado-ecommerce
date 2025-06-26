@@ -22,7 +22,13 @@ class ProductController extends Controller
     {
         $perPage = $request->get('per_page', 15);
         $products = $this->productService->getPaginatedProducts($perPage);
-        return view('admin.products.index', compact('products'));
+        $categoryOptions = $products->pluck('category.name')
+                            ->unique()
+                            ->mapWithKeys(function ($name) {
+                                return [$name => $name];
+                            })
+                            ->all();
+        return view('admin.products.index', compact('products', 'categoryOptions'));
     }
 
     public function create(): View
