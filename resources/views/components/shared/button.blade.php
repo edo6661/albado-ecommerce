@@ -15,7 +15,7 @@
 ])
 
 @php
-    $baseClass = 'inline-flex items-center justify-center border font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150 ease-in-out';
+    $baseClass = 'items-center justify-center border font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150 ease-in-out';
     
     
     $sizeClasses = [
@@ -60,7 +60,7 @@
     <a 
         href="{{ $href }}"
         @if($target) target="{{ $target }}" @endif
-        class="{{ $classes }}"
+        class="{{ $classes }} {{ $icon ? 'flex items-center gap-2' : '' }}"
         @if($disabled) 
             onclick="event.preventDefault(); return false;"
             tabindex="-1"
@@ -85,26 +85,33 @@
         @endif
     </a>
 @else
-    <button 
+    <div
+        class="flex {{ $fullWidth ? 'w-full' : '' }} {{ $buttonClass }} {{ $icon ? 'items-center gap-2' : '' }}"
+        @if($loading) x-data="{ loading: true }" @else x-data="{ loading: false }" @endif
+    >
+        <button 
         type="{{ $type }}"
         class="{{ $classes }}"
         @if($disabled || $loading) disabled @endif
         {{ $attributes }}
-    >
-        @if($loading)
-            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http:
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            {{ $loadingText }}
-        @else
-            @if($icon && $iconPosition === 'left')
-                {!! $icon !!}
+        >
+            @if($loading)
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http:
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {{ $loadingText }}
+            @else
+                @if($icon && $iconPosition === 'left')
+                    {!! $icon !!}
+                @endif
+                <span>
+                    {{ $slot }}
+                </span>
+                @if($icon && $iconPosition === 'right')
+                    {!! $icon !!}
+                @endif
             @endif
-            {{ $slot }}
-            @if($icon && $iconPosition === 'right')
-                {!! $icon !!}
-            @endif
-        @endif
-    </button>
+        </button>
+    </div>
 @endif

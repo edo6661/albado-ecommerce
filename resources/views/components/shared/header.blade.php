@@ -36,6 +36,9 @@
             <a href="{{ route('admin.products.index') }}">
                 products
             </a>
+            <a href="{{ route('admin.orders.index') }}">
+                orders
+            </a>
         @endif
     </div>
       

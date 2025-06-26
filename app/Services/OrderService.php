@@ -1,0 +1,192 @@
+<?php
+
+namespace App\Services;
+
+use App\Contracts\Services\OrderServiceInterface;
+use App\Contracts\Repositories\OrderRepositoryInterface;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Product;
+use App\Enums\OrderStatus;
+use App\Exceptions\OrderNotFoundException;
+use App\Exceptions\OrderCannotBeCancelledException;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+class OrderService implements OrderServiceInterface
+{
+    public function __construct(
+        protected OrderRepositoryInterface $orderRepository
+    ) {}
+
+    public function getOrderById(int $id): Order
+    {
+        $order = $this->orderRepository->findById($id);
+        
+        if (!$order) {
+            throw new OrderNotFoundException("Order dengan ID {$id} tidak ditemukan.");
+        }
+        
+        return $order;
+    }
+
+    public function getOrderByNumber(string $orderNumber): Order
+    {
+        $order = $this->orderRepository->findByOrderNumber($orderNumber);
+        
+        if (!$order) {
+            throw new OrderNotFoundException("Order dengan nomor {$orderNumber} tidak ditemukan.");
+        }
+        
+        return $order;
+    }
+
+    public function getPaginatedOrders(int $perPage = 15, array $filters = []): LengthAwarePaginator
+    {
+        return $this->orderRepository->getAllPaginated($perPage, $filters);
+    }
+
+    public function getUserOrders(int $userId): Collection
+    {
+        return $this->orderRepository->getByUserId($userId);
+    }
+
+    public function getOrdersByStatus(string $status): Collection
+    {
+        return $this->orderRepository->getByStatus($status);
+    }
+
+    public function createOrder(array $orderData, array $items): Order
+    {
+        try {
+            DB::beginTransaction();
+
+            // Validasi items
+            if (empty($items)) {
+                throw new \InvalidArgumentException('Order harus memiliki minimal 1 item.');
+            }
+
+            // Hitung total
+            $totals = $this->calculateOrderTotal($items, $orderData['tax_rate'] ?? 0);
+
+            // Buat order
+            $orderData = array_merge($orderData, [
+                'order_number' => Order::generateOrderNumber(),
+                'status' => OrderStatus::PENDING,
+                'subtotal' => $totals['subtotal'],
+                'tax' => $totals['tax'],
+                'total' => $totals['total'],
+            ]);
+
+            $order = $this->orderRepository->create($orderData);
+
+            // Buat order items
+            foreach ($items as $item) {
+                $product = Product::find($item['product_id']);
+                if (!$product) {
+                    throw new \InvalidArgumentException("Produk dengan ID {$item['product_id']} tidak ditemukan.");
+                }
+
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'product_price' => $product->price,
+                    'quantity' => $item['quantity'],
+                    'total' => $product->price * $item['quantity'],
+                ]);
+            }
+
+            DB::commit();
+
+            return $this->getOrderById($order->id);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error creating order: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function updateOrderStatus(int $orderId, string $status): Order
+    {
+        $order = $this->getOrderById($orderId);
+        
+        if (!in_array($status, OrderStatus::values())) {
+            throw new \InvalidArgumentException("Status '{$status}' tidak valid.");
+        }
+
+        $this->orderRepository->update($order, ['status' => $status]);
+        
+        return $this->getOrderById($orderId);
+    }
+
+    public function updateOrder(int $orderId, array $data): Order
+    {
+        $order = $this->getOrderById($orderId);
+        
+        $this->orderRepository->update($order, $data);
+        
+        return $this->getOrderById($orderId);
+    }
+
+    public function cancelOrder(int $orderId): Order
+    {
+        $order = $this->getOrderById($orderId);
+        
+        if (!$order->canBeCancelled()) {
+            throw new OrderCannotBeCancelledException("Order dengan status '{$order->status->label()}' tidak dapat dibatalkan.");
+        }
+
+        $this->orderRepository->update($order, ['status' => OrderStatus::CANCELLED]);
+        
+        return $this->getOrderById($orderId);
+    }
+
+    public function deleteOrder(int $orderId): bool
+    {
+        $order = $this->getOrderById($orderId);
+        
+        return $this->orderRepository->delete($order);
+    }
+
+    public function getOrderStatistics(): array
+    {
+        $statusCounts = $this->orderRepository->getTotalOrdersByStatus();
+        $totalOrders = array_sum($statusCounts);
+        
+        return [
+            'total_orders' => $totalOrders,
+            'status_counts' => $statusCounts,
+            'recent_orders' => $this->getRecentOrders(5),
+        ];
+    }
+
+    public function getRecentOrders(int $limit = 10): Collection
+    {
+        return $this->orderRepository->getRecentOrders($limit);
+    }
+
+    public function calculateOrderTotal(array $items, float $taxRate = 0): array
+    {
+        $subtotal = 0;
+        
+        foreach ($items as $item) {
+            $product = Product::find($item['product_id']);
+            if ($product) {
+                $subtotal += $product->price * $item['quantity'];
+            }
+        }
+        
+        $tax = $subtotal * ($taxRate / 100);
+        $total = $subtotal + $tax;
+        
+        return [
+            'subtotal' => $subtotal,
+            'tax' => $tax,
+            'total' => $total,
+        ];
+    }
+}

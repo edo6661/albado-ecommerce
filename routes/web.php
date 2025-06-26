@@ -12,6 +12,7 @@ Route::middleware(['auth','verified'])->group(function () {
             require __DIR__ . '/admin/user.php';
             require __DIR__ . '/admin/product.php';
             require __DIR__ . '/admin/dashboard.php';
+            require __DIR__ . '/admin/order.php';
         });
     });
 });
