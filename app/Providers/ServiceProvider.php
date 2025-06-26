@@ -6,11 +6,13 @@ use App\Contracts\Services\AuthServiceInterface;
 use App\Contracts\Services\OrderServiceInterface;
 use App\Contracts\Services\ProductServiceInterface;
 use App\Contracts\Services\ProfileServiceInterface;
+use App\Contracts\Services\TransactionServiceInterface;
 use App\Contracts\Services\UserServiceInterface;
 use App\Services\AuthService;
 use App\Services\OrderService;
 use App\Services\ProductService;
 use App\Services\ProfileService;
+use App\Services\TransactionService;
 use App\Services\UserService;
 use Illuminate\Support\ServiceProvider as SV;
 
@@ -26,6 +28,7 @@ class ServiceProvider extends SV
         $this->app->bind(ProfileServiceInterface::class, ProfileService::class);
         $this->app->bind(ProductServiceInterface::class, ProductService::class);
         $this->app->bind(OrderServiceInterface::class, OrderService::class);
+        $this->app->bind(TransactionServiceInterface::class, TransactionService::class);
     }
 
     /**
