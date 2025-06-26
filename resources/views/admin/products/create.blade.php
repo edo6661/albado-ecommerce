@@ -7,9 +7,7 @@
                 <div class="flex items-center space-x-4">
                     <a href="{{ route('admin.products.index') }}" 
                        class="text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                        </svg>
+                        <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div>
                         <h1 class="text-3xl font-extrabold text-gray-900">Tambah Produk Baru</h1>
