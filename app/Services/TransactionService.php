@@ -114,4 +114,9 @@ class TransactionService implements TransactionServiceInterface
     {
         return $this->transactionRepository->getTransactionsByDateRange($startDate, $endDate);
     }
+
+    public function getFilteredTransactions(array $filters = []): Collection
+    {
+        return $this->transactionRepository->getFilteredTransactions($filters);
+    }
 }

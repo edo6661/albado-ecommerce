@@ -14,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TransactionController extends Controller
 {
@@ -149,8 +150,8 @@ class TransactionController extends Controller
                 'order_id' => $request->get('order_id'),
             ];
 
-            // Logic untuk export data bisa ditambahkan di sini
-            // Misalnya menggunakan Excel export atau CSV
+            
+            
             
             return response()->json(['success' => true, 'message' => 'Export berhasil']);
         } catch (\Exception $e) {
@@ -177,6 +178,57 @@ class TransactionController extends Controller
             return response()->json(['success' => true, 'data' => $transactions]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+    public function exportPdf(Request $request)
+    {
+        try {
+            $filters = [
+                'status' => $request->get('status'),
+                'payment_type' => $request->get('payment_type'),
+                'date_from' => $request->get('date_from'),
+                'date_to' => $request->get('date_to'),
+                'order_id' => $request->get('order_id'),
+                'search' => $request->get('search'),
+            ];
+
+            
+            $transactions = $this->transactionService->getFilteredTransactions(array_filter($filters));
+            
+            
+            $exportData = [
+                'transactions' => $transactions,
+                'filters' => $filters,
+                'total_transactions' => $transactions->count(),
+                'total_amount' => $transactions->where('status', 'settlement')->sum('gross_amount'),
+                'export_date' => now()->format('d/m/Y H:i:s'),
+                'status_summary' => $transactions->groupBy('status')->map->count(),
+                'payment_type_summary' => $transactions->groupBy('payment_type')->map->count(),
+            ];
+
+            $pdf = Pdf::loadView('admin.transactions.export.pdf', $exportData)
+                    ->setPaper('a4', 'landscape')
+                    ->setOptions([
+                        'defaultFont' => 'sans-serif',
+                        'isRemoteEnabled' => true,
+                        'isHtml5ParserEnabled' => true,
+                        'dpi' => 150,
+                        'defaultPaperSize' => 'a4',
+                        'chroot' => public_path(),
+                    ]);
+
+            $filename = 'laporan-transaksi-' . date('Y-m-d-H-i-s') . '.pdf';
+            
+            return response($pdf->output(), 200)
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
+                
+        } catch (\Exception $e) {
+            Log::error('Export PDF Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal mengexport PDF: ' . $e->getMessage());
         }
     }
 }

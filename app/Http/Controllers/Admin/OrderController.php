@@ -12,12 +12,8 @@ use App\Enums\OrderStatus;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\OrdersExport;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller

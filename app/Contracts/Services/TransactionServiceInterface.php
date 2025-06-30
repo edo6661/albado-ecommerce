@@ -31,4 +31,5 @@ interface TransactionServiceInterface
     public function getTransactionsByPaymentType(string $paymentType): Collection;
     
     public function getTransactionsByDateRange(string $startDate, string $endDate): Collection;
+    public function getFilteredTransactions(array $filters = []): Collection;
 }

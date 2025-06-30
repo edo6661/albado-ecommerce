@@ -35,4 +35,5 @@ interface TransactionRepositoryInterface
     public function getTotalRevenue(): float;
     
     public function getMonthlyRevenue(): array;
+    public function getFilteredTransactions(array $filters = []): Collection;
 }

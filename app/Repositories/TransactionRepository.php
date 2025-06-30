@@ -168,4 +168,45 @@ class TransactionRepository implements TransactionRepositoryInterface
                 ->toArray();
         }
     }
+    public function getFilteredTransactions(array $filters = []): Collection
+    {
+        $query = $this->model->with(['order.user', 'order.items.product'])
+            ->orderBy('created_at', 'desc');
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['payment_type'])) {
+            $query->where('payment_type', $filters['payment_type']);
+        }
+
+        if (!empty($filters['date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['date_from']);
+        }
+
+        if (!empty($filters['date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['date_to']);
+        }
+
+        if (!empty($filters['order_id'])) {
+            $query->where('order_id', $filters['order_id']);
+        }
+
+        if (!empty($filters['search'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('transaction_id', 'like', '%' . $filters['search'] . '%')
+                ->orWhere('order_id_midtrans', 'like', '%' . $filters['search'] . '%')
+                ->orWhereHas('order', function ($orderQuery) use ($filters) {
+                    $orderQuery->where('order_number', 'like', '%' . $filters['search'] . '%')
+                            ->orWhereHas('user', function ($userQuery) use ($filters) {
+                                $userQuery->where('name', 'like', '%' . $filters['search'] . '%')
+                                            ->orWhere('email', 'like', '%' . $filters['search'] . '%');
+                            });
+                });
+            });
+        }
+
+        return $query->get();
+    }
 }
