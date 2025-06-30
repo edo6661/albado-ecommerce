@@ -40,6 +40,7 @@
             @click="exportToPdf()" 
             variant="secondary"
         >
+            Export PDF
         </x-shared.button>
     </div>
 </div>
