@@ -33,4 +33,6 @@ interface OrderServiceInterface
     public function getRecentOrders(int $limit = 10): Collection;
     
     public function calculateOrderTotal(array $items, float $taxRate = 0): array;
+    public function getFilteredOrders(array $filters = []): Collection;
+    
 }

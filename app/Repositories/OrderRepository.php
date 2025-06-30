@@ -113,4 +113,37 @@ class OrderRepository implements OrderRepositoryInterface
             ->orderBy('created_at', 'desc')
             ->get();
     }
+    public function getFilteredOrders(array $filters = []): Collection
+    {
+        $query = $this->model->with(['user', 'items.product', 'transaction'])
+            ->orderBy('created_at', 'desc');
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['date_from']);
+        }
+
+        if (!empty($filters['date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['date_to']);
+        }
+
+        if (!empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
+        if (!empty($filters['search'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('order_number', 'like', '%' . $filters['search'] . '%')
+                ->orWhereHas('user', function ($userQuery) use ($filters) {
+                    $userQuery->where('name', 'like', '%' . $filters['search'] . '%')
+                            ->orWhere('email', 'like', '%' . $filters['search'] . '%');
+                });
+            });
+        }
+
+        return $query->get();
+    }
 }

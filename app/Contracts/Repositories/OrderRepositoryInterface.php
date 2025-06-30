@@ -29,4 +29,5 @@ interface OrderRepositoryInterface
     public function getTotalOrdersByStatus(): array;
     
     public function getOrdersByDateRange(string $startDate, string $endDate): Collection;
+    public function getFilteredOrders(array $filters = []): Collection;
 }

@@ -54,19 +54,28 @@
             />
         </div>
     </div>
-    <div class="mt-4 flex justify-end space-x-2">
+    <div class="flex items-center justify-between mt-4 flex-wrap space-y-4">
+        <div class="mt-4 flex justify-start space-x-2 items-center">
+            <x-shared.button
+                @click="searchQuery = ''; selectedStatus = ''; selectedUser = ''; dateFrom = ''; dateTo = ''; applyFilters()"
+                variant="light"
+            >
+                Reset Filter
+            </x-shared.button>
+            <x-shared.button
+                @click="applyFilters()"
+                variant="primary"
+                icon='<i class="fas fa-filter mr-2"></i>'
+            >
+                Terapkan Filter
+            </x-shared.button>
+        </div>
         <x-shared.button
-            @click="searchQuery = ''; selectedStatus = ''; selectedUser = ''; dateFrom = ''; dateTo = ''; applyFilters()"
-            variant="light"
+            @click="exportToPdf()" 
+            variant="secondary"
         >
-            Reset Filter
-        </x-shared.button>
-        <x-shared.button
-            @click="applyFilters()"
-            variant="primary"
-            icon='<i class="fas fa-filter mr-2"></i>'
-        >
-            Terapkan Filter
+            Export To PDF
         </x-shared.button>
     </div>
+    
 </div>

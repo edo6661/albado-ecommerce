@@ -14,6 +14,11 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\OrdersExport;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -119,21 +124,7 @@ class OrderController extends Controller
             return back()->withErrors(['error' => 'Gagal membatalkan order: ' . $e->getMessage()]);
         }
     }
-
-    
-
-    public function statistics(): JsonResponse
-    {
-        try {
-            $statistics = $this->orderService->getOrderStatistics();
-            
-            return response()->json(['success' => true, 'data' => $statistics]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
-        }
-    }
-
-    public function export(Request $request): JsonResponse
+     public function exportPdf(Request $request)
     {
         try {
             $filters = [
@@ -141,14 +132,46 @@ class OrderController extends Controller
                 'date_from' => $request->get('date_from'),
                 'date_to' => $request->get('date_to'),
                 'user_id' => $request->get('user_id'),
+                'search' => $request->get('search'),
             ];
 
-            // Logic untuk export data bisa ditambahkan di sini
-            // Misalnya menggunakan Excel export atau CSV
+            // Get all orders without pagination for export
+            $orders = $this->orderService->getFilteredOrders(array_filter($filters));
             
-            return response()->json(['success' => true, 'message' => 'Export berhasil']);
+            // Tambahkan data tambahan untuk laporan
+            $exportData = [
+                'orders' => $orders,
+                'filters' => $filters,
+                'total_orders' => $orders->count(),
+                'total_amount' => $orders->sum('total'),
+                'export_date' => now()->format('d/m/Y H:i:s'),
+                'status_summary' => $orders->groupBy('status')->map->count(),
+            ];
+
+            $pdf = Pdf::loadView('admin.orders.export.pdf', $exportData)
+                    ->setPaper('a4', 'landscape')
+                    ->setOptions([
+                        'defaultFont' => 'sans-serif',
+                        'isRemoteEnabled' => true,
+                        'isHtml5ParserEnabled' => true,
+                        'dpi' => 150,
+                        'defaultPaperSize' => 'a4',
+                        'chroot' => public_path(),
+                    ]);
+
+            $filename = 'laporan-pesanan-' . date('Y-m-d-H-i-s') . '.pdf';
+            
+            // Pastikan hanya mengembalikan PDF download
+            return response($pdf->output(), 200)
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
+                
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            Log::error('Export PDF Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal mengexport PDF: ' . $e->getMessage());
         }
     }
 }

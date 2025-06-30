@@ -189,8 +189,43 @@
                         'cancelled': 'bg-red-100 text-red-800'
                     };
                     return statusClasses[status] || 'bg-gray-100 text-gray-800';
-                }
-            }
+                },
+                exportToPdf() {
+                    this.isLoading = true;
+                    
+                    const params = new URLSearchParams();
+                    if (this.selectedStatus) params.append('status', this.selectedStatus);
+                    if (this.selectedUser) params.append('user_id', this.selectedUser);
+                    if (this.dateFrom) params.append('date_from', this.dateFrom);
+                    if (this.dateTo) params.append('date_to', this.dateTo);
+                    if (this.searchQuery) params.append('search', this.searchQuery);
+                    
+                    const url = `/admin/orders/export/pdf?${params.toString()}`;
+                    
+                    const form = document.createElement('form');
+                    form.method = 'GET';
+                    form.action = url;
+                    form.target = '_blank'; 
+                    form.style.display = 'none';
+                    
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                    if (csrfToken) {
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = '_token';
+                        csrfInput.value = csrfToken.getAttribute('content');
+                        form.appendChild(csrfInput);
+                    }
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                    document.body.removeChild(form);
+                    
+                    setTimeout(() => {
+                        this.isLoading = false;
+                    }, 1000);
+                },
+            };
         }
     </script>
 </x-layouts.plain-app>

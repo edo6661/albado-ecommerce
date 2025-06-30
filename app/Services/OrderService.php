@@ -189,5 +189,8 @@ class OrderService implements OrderServiceInterface
             'total' => $total,
         ];
     }
-    
+    public function getFilteredOrders(array $filters = []): Collection
+    {
+        return $this->orderRepository->getFilteredOrders($filters);
+    }
 }
