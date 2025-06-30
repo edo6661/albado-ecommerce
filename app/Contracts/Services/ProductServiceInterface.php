@@ -16,4 +16,5 @@ interface ProductServiceInterface
     public function deleteProductImage(int $productId, int $imageId): bool;
     public function getProductStatistics(): array;
     public function getRecentProducts(int $limit = 10): Collection;
+    public function getFilteredProducts(array $filters = []): Collection;
 }

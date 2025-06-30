@@ -62,4 +62,35 @@ class ProductRepository implements ProductRepositoryInterface
             ->limit($limit)
             ->get();
     }
+    public function getFilteredProducts(array $filters = []): Collection
+    {
+        $query = $this->model->with(['category', 'images'])
+            ->orderBy('created_at', 'desc');
+
+        if (!empty($filters['category'])) {
+            $query->whereHas('category', function ($q) use ($filters) {
+                $q->where('name', $filters['category']);
+            });
+        }
+
+        if (!empty($filters['status'])) {
+            if ($filters['status'] === 'active') {
+                $query->where('is_active', true);
+            } elseif ($filters['status'] === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+
+        if (!empty($filters['search'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('name', 'like', '%' . $filters['search'] . '%')
+                ->orWhere('description', 'like', '%' . $filters['search'] . '%')
+                ->orWhereHas('category', function ($categoryQuery) use ($filters) {
+                    $categoryQuery->where('name', 'like', '%' . $filters['search'] . '%');
+                });
+            });
+        }
+
+        return $query->get();
+    }
 }

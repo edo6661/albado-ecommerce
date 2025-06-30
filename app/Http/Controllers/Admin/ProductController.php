@@ -7,6 +7,7 @@ use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
 use App\Exceptions\ProductNotFoundException;
 use App\Models\Category;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -135,6 +136,61 @@ class ProductController extends Controller
             return response()->json(['success' => true, 'message' => 'Gambar berhasil dihapus']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+    public function exportPdf(Request $request)
+    {
+        try {
+            $filters = [
+                'category' => $request->get('category'),
+                'status' => $request->get('status'),
+                'search' => $request->get('search'),
+            ];
+
+            $products = $this->productService->getFilteredProducts(array_filter($filters));
+            
+            $exportData = [
+                'products' => $products,
+                'filters' => $filters,
+                'total_products' => $products->count(),
+                'total_value' => $products->sum(function($product) {
+                    return $product->price * $product->stock;
+                }),
+                'export_date' => now()->format('d/m/Y H:i:s'),
+                'category_summary' => $products->groupBy('category.name')->map->count(),
+                'status_summary' => [
+                    'active' => $products->where('is_active', true)->count(),
+                    'inactive' => $products->where('is_active', false)->count(),
+                ],
+                'stock_summary' => [
+                    'in_stock' => $products->where('stock', '>', 0)->count(),
+                    'out_of_stock' => $products->where('stock', 0)->count(),
+                    'low_stock' => $products->where('stock', '<=', 10)->where('stock', '>', 0)->count(),
+                ],
+            ];
+
+            $pdf = Pdf::loadView('admin.products.export.pdf', $exportData)
+                    ->setPaper('a4', 'landscape')
+                    ->setOptions([
+                        'defaultFont' => 'sans-serif',
+                        'isRemoteEnabled' => true,
+                        'isHtml5ParserEnabled' => true,
+                        'dpi' => 150,
+                        'defaultPaperSize' => 'a4',
+                        'chroot' => public_path(),
+                    ]);
+
+            $filename = 'laporan-produk-' . date('Y-m-d-H-i-s') . '.pdf';
+            
+            return response($pdf->output(), 200)
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
+                
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mengexport PDF: ' . $e->getMessage());
         }
     }
 }

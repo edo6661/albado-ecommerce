@@ -15,4 +15,5 @@ interface ProductRepositoryInterface
     public function delete(Product $product): bool;
     public function getProductStatistics(): array;
     public function getRecentProducts(int $limit = 10): Collection;
+    public function getFilteredProducts(array $filters = []): Collection;
 }

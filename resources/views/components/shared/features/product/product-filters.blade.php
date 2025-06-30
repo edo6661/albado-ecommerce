@@ -2,7 +2,7 @@
     'categoryOptions' => [],
 ])
 
-<div class="bg-white shadow-sm rounded-lg p-6 mb-6">
+<div class="bg-white shadow-sm rounded-lg p-6 mb-6 flex flex-col space-y-8 ">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
             <x-shared.forms.input
@@ -36,5 +36,10 @@
                 @change="filterProducts()"
             />
         </div>
+        <x-shared.button
+            @click="exportToPdf()" 
+            variant="secondary"
+        >
+        </x-shared.button>
     </div>
 </div>

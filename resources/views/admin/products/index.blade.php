@@ -201,7 +201,40 @@
                         currency: 'IDR',
                         minimumFractionDigits: 0
                     }).format(amount);
-                }
+                },
+                exportToPdf() {
+                    this.isLoading = true;
+                    
+                    const params = new URLSearchParams();
+                    if (this.selectedCategory) params.append('category', this.selectedCategory);
+                    if (this.selectedStatus) params.append('status', this.selectedStatus);
+                    if (this.searchQuery) params.append('search', this.searchQuery);
+                    
+                    const url = `/admin/products/export/pdf?${params.toString()}`;
+                    
+                    const form = document.createElement('form');
+                    form.method = 'GET';
+                    form.action = url;
+                    form.target = '_blank'; 
+                    form.style.display = 'none';
+                    
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                    if (csrfToken) {
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = '_token';
+                        csrfInput.value = csrfToken.getAttribute('content');
+                        form.appendChild(csrfInput);
+                    }
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                    document.body.removeChild(form);
+                    
+                    setTimeout(() => {
+                        this.isLoading = false;
+                    }, 1000);
+                },
             }
         }
     </script>

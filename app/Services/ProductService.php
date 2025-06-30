@@ -160,4 +160,8 @@ class ProductService implements ProductServiceInterface
     {
         return $this->productRepository->getRecentProducts($limit);
     }
+    public function getFilteredProducts(array $filters = []): Collection
+    {
+        return $this->productRepository->getFilteredProducts($filters);
+    }
 }
