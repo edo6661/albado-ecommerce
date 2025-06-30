@@ -72,6 +72,15 @@ class UserService implements UserServiceInterface
     {
         return $this->userRepository->getAllPaginated($perPage);
     }
+    public function getUserStatistics(): array
+    {
+        return $this->userRepository->getUserStatistics();
+    }
+
+    public function getRecentUsers(int $limit = 10): Collection
+    {
+        return $this->userRepository->getRecentUsers($limit);
+    }
 }
 
 

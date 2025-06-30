@@ -9,6 +9,7 @@ use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Collection;
 
 class ProductService implements ProductServiceInterface
 {
@@ -149,5 +150,14 @@ class ProductService implements ProductServiceInterface
             
             return $image->delete();
         });
+    }
+    public function getProductStatistics(): array
+    {
+        return $this->productRepository->getProductStatistics();
+    }
+
+    public function getRecentProducts(int $limit = 10): Collection
+    {
+        return $this->productRepository->getRecentProducts($limit);
     }
 }

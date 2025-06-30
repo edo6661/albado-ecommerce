@@ -138,18 +138,34 @@ class TransactionRepository implements TransactionRepositoryInterface
             ->sum('gross_amount');
     }
 
-    public function getMonthlyRevenue(): array
+   public function getMonthlyRevenue(): array
     {
-        return $this->model->select(
-                DB::raw('YEAR(created_at) as year'),
-                DB::raw('MONTH(created_at) as month'),
-                DB::raw('SUM(gross_amount) as total')
-            )
-            ->where('status', TransactionStatus::SETTLEMENT->value)
-            ->whereYear('created_at', now()->year)
-            ->groupBy('year', 'month')
-            ->orderBy('month')
-            ->get()
-            ->toArray();
+        $databaseDriver = $this->model->getConnection()->getDriverName();
+
+        if ($databaseDriver === 'sqlite') {
+            return $this->model->select(
+                    DB::raw("strftime('%Y', created_at) as year"),
+                    DB::raw("strftime('%m', created_at) as month"),
+                    DB::raw('SUM(gross_amount) as total')
+                )
+                ->where('status', TransactionStatus::SETTLEMENT->value)
+                ->whereYear('created_at', now()->year)
+                ->groupBy('year', 'month')
+                ->orderBy('month')
+                ->get()
+                ->toArray();
+        } else {
+            return $this->model->select(
+                    DB::raw('YEAR(created_at) as year'),
+                    DB::raw('MONTH(created_at) as month'),
+                    DB::raw('SUM(gross_amount) as total')
+                )
+                ->where('status', TransactionStatus::SETTLEMENT->value)
+                ->whereYear('created_at', now()->year)
+                ->groupBy('year', 'month')
+                ->orderBy('month')
+                ->get()
+                ->toArray();
+        }
     }
 }

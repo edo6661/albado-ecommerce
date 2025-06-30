@@ -20,12 +20,5 @@
             Hapus Terpilih (<span x-text="selectedOrders.length"></span>)
         </x-shared.button>
         
-        <x-shared.button
-            @click="window.location.reload()"
-            variant="light"
-            icon='<i class="fas fa-refresh mr-2"></i>'
-        >
-            Refresh
-        </x-shared.button>
     </div>
 </div>

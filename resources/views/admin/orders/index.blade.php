@@ -180,7 +180,7 @@
                     }).format(amount);
                 },
                 getStatusBadgeClass(status) {
-                    const statusClasses = {
+                    const statusClasses = { 
                         'pending': 'bg-yellow-100 text-yellow-800',
                         'confirmed': 'bg-blue-100 text-blue-800',
                         'processing': 'bg-purple-100 text-purple-800',

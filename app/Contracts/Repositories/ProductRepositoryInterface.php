@@ -13,4 +13,6 @@ interface ProductRepositoryInterface
     public function create(array $data): Product;
     public function update(Product $product, array $data): bool;
     public function delete(Product $product): bool;
+    public function getProductStatistics(): array;
+    public function getRecentProducts(int $limit = 10): Collection;
 }

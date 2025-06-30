@@ -16,4 +16,6 @@ interface UserRepositoryInterface
     public function delete(User $user): bool;
     public function getAllPaginated(int $perPage = 15): LengthAwarePaginator;
     public function getAll(): Collection;
+    public function getUserStatistics(): array;
+    public function getRecentUsers(int $limit = 10): Collection;
 }

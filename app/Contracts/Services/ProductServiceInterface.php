@@ -3,7 +3,7 @@
 namespace App\Contracts\Services;
 use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Http\UploadedFile;
+use Illuminate\Database\Eloquent\Collection;
 
 interface ProductServiceInterface
 {
@@ -14,4 +14,6 @@ interface ProductServiceInterface
     public function deleteProduct(int $id): bool;
     public function deleteMultipleProducts(array $ids): int;
     public function deleteProductImage(int $productId, int $imageId): bool;
+    public function getProductStatistics(): array;
+    public function getRecentProducts(int $limit = 10): Collection;
 }

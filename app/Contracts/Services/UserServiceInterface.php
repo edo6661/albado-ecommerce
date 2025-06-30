@@ -15,4 +15,6 @@ interface UserServiceInterface
     public function deleteUser(int $id): bool;
     public function getAllUsers(): Collection;
     public function getPaginatedUsers(int $perPage = 15): LengthAwarePaginator;
+    public function getUserStatistics(): array;
+    public function getRecentUsers(int $limit = 10): Collection;
 }

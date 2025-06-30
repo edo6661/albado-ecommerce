@@ -79,14 +79,15 @@
                 icon='<i class="fas fa-eye"></i>'
             >
             </x-shared.button>
-            
-            <x-shared.button
-                @click="confirmStatusUpdate({{ $transaction->id }}, '{{ $transaction->transaction_id }}', '{{ $transaction->status }}')"
-                variant="primary"
-                size="sm"
-                icon='<i class="fas fa-edit"></i>'
-            >
-            </x-shared.button>
+            @if($transaction->isPending())
+                <x-shared.button
+                    @click="confirmStatusUpdate({{ $transaction->id }}, '{{ $transaction->transaction_id }}', '{{ $transaction->status }}')"
+                    variant="primary"
+                    size="sm"
+                    icon='<i class="fas fa-edit"></i>'
+                >
+                </x-shared.button>
+            @endif
         </div>        
     </td>
 </tr>
