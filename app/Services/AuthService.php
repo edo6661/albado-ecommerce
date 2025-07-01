@@ -163,7 +163,6 @@ class AuthService implements AuthServiceInterface
         if ($user->isAdmin()) {
             return route('admin.dashboard');
         }
-        
         return route('home');
     }
 }
