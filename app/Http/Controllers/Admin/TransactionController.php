@@ -227,7 +227,6 @@ class TransactionController extends Controller
                 ->header('Expires', '0');
                 
         } catch (\Exception $e) {
-            Log::error('Export PDF Error: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Gagal mengexport PDF: ' . $e->getMessage());
         }
     }

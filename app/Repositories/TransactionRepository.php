@@ -13,7 +13,20 @@ use Illuminate\Support\Facades\DB;
 class TransactionRepository implements TransactionRepositoryInterface
 {
     public function __construct(protected Transaction $model) {}
+    public function create(array $data): Transaction
+    {
+        return $this->model->create($data);
+    }
 
+    public function update(Transaction $transaction, array $data): bool
+    {
+        return $transaction->update($data);
+    }
+
+    public function delete(Transaction $transaction): bool
+    {
+        return $transaction->delete();
+    }
     public function findById(int $id): ?Transaction
     {
         return $this->model->with(['order.user', 'order.items.product'])->find($id);
@@ -84,20 +97,7 @@ class TransactionRepository implements TransactionRepositoryInterface
             ->get();
     }
 
-    public function create(array $data): Transaction
-    {
-        return $this->model->create($data);
-    }
-
-    public function update(Transaction $transaction, array $data): bool
-    {
-        return $transaction->update($data);
-    }
-
-    public function delete(Transaction $transaction): bool
-    {
-        return $transaction->delete();
-    }
+    
 
     public function getRecentTransactions(int $limit = 10): Collection
     {
@@ -208,5 +208,9 @@ class TransactionRepository implements TransactionRepositoryInterface
         }
 
         return $query->get();
+    }
+    public function findByOrderIdMidtrans(string $orderId): ?Transaction
+    {
+        return $this->model->where('order_id_midtrans', $orderId)->first();
     }
 }

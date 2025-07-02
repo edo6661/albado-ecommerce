@@ -87,7 +87,7 @@ class ProductController extends Controller
                 unset($validatedData['delete_images']);
             }
             
-            $this->productService->updateProduct($id, $validatedData, $images, $imagesToDelete);
+            $this->productService->updateProduct($id, $validatedData, $images);
             return redirect()->route('admin.products.index')->with('success', 'Produk berhasil diperbarui.');
         } catch (ProductNotFoundException $e) {
             abort(404, $e->getMessage());
