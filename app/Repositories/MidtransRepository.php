@@ -45,7 +45,10 @@ class MidtransRepository implements MidtransRepositoryInterface
 
             $payload['callbacks'] = [
                 'finish' => route('payment.finish'),
+                'unfinish' => route('payment.unfinish'), // jika ada
+                'error' => route('payment.error'), // jika ada
             ];
+            
 
             $snapToken = Snap::getSnapToken($payload);
 

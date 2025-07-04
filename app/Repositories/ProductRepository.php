@@ -4,7 +4,6 @@ namespace App\Repositories;
 
 use App\Contracts\Repositories\ProductRepositoryInterface;
 use App\Models\Product;
-use App\Utils\StringHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -92,5 +91,12 @@ class ProductRepository implements ProductRepositoryInterface
         }
 
         return $query->get();
+    }
+    public function getPaginatedActiveProducts(int $perPage = 12, int $page = 1): LengthAwarePaginator
+    {
+        return $this->model->with(['category', 'images'])
+            ->where('is_active', true)
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page);
     }
 }

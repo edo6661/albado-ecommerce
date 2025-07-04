@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Contracts\Services\AuthServiceInterface;
+use App\Contracts\Services\CartServiceInterface;
 use App\Contracts\Services\CategoryServiceInterface;
 use App\Contracts\Services\OrderServiceInterface;
 use App\Contracts\Services\ProductServiceInterface;
@@ -11,6 +12,7 @@ use App\Contracts\Services\MidtransServiceInterface;
 use App\Contracts\Services\TransactionServiceInterface;
 use App\Contracts\Services\UserServiceInterface;
 use App\Services\AuthService;
+use App\Services\CartService;
 use App\Services\CategoryService;
 use App\Services\OrderService;
 use App\Services\ProductService;
@@ -35,6 +37,7 @@ class ServiceProvider extends SV
         $this->app->bind(TransactionServiceInterface::class, TransactionService::class);
         $this->app->bind(CategoryServiceInterface::class, CategoryService::class);
         $this->app->bind(MidtransServiceInterface::class, MidtransService::class);
+        $this->app->bind(CartServiceInterface::class, CartService::class);
     }
 
     /**

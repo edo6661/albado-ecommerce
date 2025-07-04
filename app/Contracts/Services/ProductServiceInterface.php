@@ -17,4 +17,5 @@ interface ProductServiceInterface
     public function getProductStatistics(): array;
     public function getRecentProducts(int $limit = 10): Collection;
     public function getFilteredProducts(array $filters = []): Collection;
+    public function getPaginatedActiveProducts(int $perPage = 12, int $page = 1): LengthAwarePaginator;
 }

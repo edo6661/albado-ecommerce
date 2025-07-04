@@ -164,4 +164,8 @@ class ProductService implements ProductServiceInterface
     {
         return $this->productRepository->getFilteredProducts($filters);
     }
+    public function getPaginatedActiveProducts(int $perPage = 12, int $page = 1): LengthAwarePaginator
+    {
+        return $this->productRepository->getPaginatedActiveProducts($perPage, $page);
+    }
 }
