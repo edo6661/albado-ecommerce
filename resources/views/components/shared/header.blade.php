@@ -65,7 +65,11 @@
                                 <i class="fa-solid fa-user-edit mr-2"></i>
                                 Profil
                             </a>
-                            
+                            <a href="{{ route('orders.index') }}" 
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fa-solid fa-shopping-bag mr-2"></i>
+                                Orders
+                            </a>
                             @if(Auth::user()->isAdmin())
                                 <a href="{{ route('admin.dashboard') }}" 
                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">

@@ -11,6 +11,7 @@ Route::post('/cart/add', [HomeController::class, 'addToCart'])->name('cart.add')
 Route::middleware(['auth','verified'])->group(function () {
     require __DIR__ . '/shared/profile.php';
     require __DIR__ . '/user/cart.php';
+    require __DIR__ . '/user/order.php';
     require __DIR__ . '/user/payment.php';
     Route::middleware('admin')->group(function () {
         Route::name('admin.')->prefix('admin')->group(function () {

@@ -146,4 +146,11 @@ class OrderRepository implements OrderRepositoryInterface
 
         return $query->get();
     }
+    public function getUserOrdersPaginated(int $userId, int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->model->where('user_id', $userId)
+            ->with(['items.product.images', 'transaction'])
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+    }
 }

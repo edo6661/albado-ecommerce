@@ -154,22 +154,17 @@
 
                         if (data.success) {
                             if (data.payment_type === 'midtrans') {
-                                // Open Midtrans snap dengan callback yang diupdate
                                 window.snap.pay(data.snap_token, {
                                     onSuccess: function(result) {
-                                        // Transaksi berhasil, update status ke settlement
                                         this.updateTransactionStatus(result, 'settlement');
                                     }.bind(this),
                                     onPending: function(result) {
-                                        // Transaksi pending, tetap pending
                                         this.updateTransactionStatus(result, 'pending');
                                     }.bind(this),
                                     onClose: function() {
-                                        // User menutup popup, anggap pending
                                         this.updateTransactionStatus(null, 'pending');
                                     }.bind(this),
                                     onError: function(result) {
-                                        // Terjadi error, anggap pending
                                         this.updateTransactionStatus(result, 'pending');
                                     }.bind(this)
                                 });
@@ -187,7 +182,6 @@
                     }
                 },
 
-                // Tambahkan fungsi baru untuk update status transaksi
                 async updateTransactionStatus(result, status) {
                     try {
                         const response = await fetch('{{ route("payment.callback") }}', {
@@ -206,16 +200,13 @@
                         const data = await response.json();
 
                         if (data.success) {
-                            // Redirect ke halaman finish
                             window.location.href = '{{ route("payment.finish") }}';
                         } else {
                             console.error('Failed to update transaction status:', data.message);
-                            // Tetap redirect ke finish untuk menghindari user stuck
                             window.location.href = '{{ route("payment.finish") }}';
                         }
                     } catch (error) {
                         console.error('Error updating transaction status:', error);
-                        // Tetap redirect ke finish untuk menghindari user stuck
                         window.location.href = '{{ route("payment.finish") }}';
                     }
                 }

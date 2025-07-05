@@ -34,5 +34,5 @@ interface OrderServiceInterface
     
     public function calculateOrderTotal(array $items, float $taxRate = 0): array;
     public function getFilteredOrders(array $filters = []): Collection;
-    
+    public function getUserOrdersPaginated(int $userId, int $perPage = 15): LengthAwarePaginator;   
 }

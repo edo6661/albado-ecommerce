@@ -194,4 +194,9 @@ class OrderService implements OrderServiceInterface
     {
         return $this->orderRepository->getFilteredOrders($filters);
     }
+    public function getUserOrdersPaginated(int $userId, int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->orderRepository->getUserOrdersPaginated($userId, $perPage);
+    }
+    
 }
