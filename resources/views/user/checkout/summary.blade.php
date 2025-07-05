@@ -63,49 +63,40 @@
             </div>
 
             <div class="space-y-6">
-                <div class="bg-gray-50 p-6 rounded-lg">
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-lg border border-blue-200">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fa-solid fa-credit-card mr-2"></i>
-                        Pilih Metode Pembayaran
+                        <i class="fa-solid fa-shopping-cart mr-2"></i>
+                        Proses Pesanan Anda
                     </h2>
                     
-                    <div class="space-y-4">
-                        <div class="p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="font-semibold text-blue-900">Bayar Sekarang</h3>
-                                    <p class="text-sm text-blue-700">Pembayaran langsung menggunakan berbagai metode</p>
-                                </div>
-                                <i class="fa-solid fa-bolt text-blue-600 text-2xl"></i>
+                    <div class="bg-white p-4 rounded-lg mb-4 border border-blue-200">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fa-solid fa-check text-blue-600 text-xl"></i>
                             </div>
-                        </div>
-
-                        <div class="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="font-semibold text-gray-900">Bayar Nanti</h3>
-                                    <p class="text-sm text-gray-600">Simpan pesanan dan bayar kemudian</p>
-                                </div>
-                                <i class="fa-solid fa-clock text-gray-600 text-2xl"></i>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">Pesanan Siap Diproses</h3>
+                                <p class="text-sm text-gray-600">Klik tombol di bawah untuk melanjutkan proses order</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mt-6 space-y-3">
-                        <button @click="processPayment('pay_now')" 
+                    <div class="mt-6">
+                        <button @click="processPayment()" 
                                 :disabled="loading"
-                                class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">
-                            <i class="fa-solid fa-credit-card mr-2"></i>
-                            <span x-show="!loading">Bayar Sekarang</span>
-                            <span x-show="loading">Processing...</span>
-                        </button>
-
-                        <button @click="processPayment('pay_later')" 
-                                :disabled="loading"
-                                class="w-full bg-gray-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">
-                            <i class="fa-solid fa-clock mr-2"></i>
-                            <span x-show="!loading">Bayar Nanti</span>
-                            <span x-show="loading">Processing...</span>
+                                class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200 shadow-lg">
+                            <template x-if="loading">
+                                <span class="flex items-center justify-center">
+                                    <i class="fa-solid fa-spinner fa-spin mr-2"></i>
+                                    Memproses Pesanan...
+                                </span>
+                            </template>
+                            <template x-if="!loading">
+                                <span class="flex items-center justify-center">
+                                    <i class="fa-solid fa-credit-card mr-2"></i>
+                                    Proses Order
+                                </span>
+                            </template>
                         </button>
                     </div>
                 </div>
@@ -123,6 +114,19 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                    <div class="flex items-start space-x-3">
+                        <i class="fa-solid fa-exclamation-triangle text-amber-600 text-xl mt-1"></i>
+                        <div>
+                            <h3 class="font-semibold text-amber-800">Catatan Penting</h3>
+                            <p class="text-sm text-amber-700 mt-1">
+                                Pastikan informasi pesanan sudah benar sebelum melanjutkan proses. 
+                                Setelah diproses, pesanan tidak dapat dibatalkan.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -132,47 +136,32 @@
             return {
                 loading: false,
                 
-                async processPayment(method) {
+                async processPayment() {
                     if (this.loading) return;
                     
                     this.loading = true;
                     
                     try {
-                        const response = await fetch('{{ route("payment.process") }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                            },
-                            body: JSON.stringify({
-                                order_id: {{ $order->id }},
-                                payment_method: method
-                            })
-                        });
-
-                        const data = await response.json();
-
-                        if (data.success) {
-                            if (data.payment_type === 'midtrans') {
-                                window.snap.pay(data.snap_token, {
-                                    onSuccess: function(result) {
-                                        this.updateTransactionStatus(result, 'settlement');
-                                    }.bind(this),
-                                    onPending: function(result) {
-                                        this.updateTransactionStatus(result, 'pending');
-                                    }.bind(this),
-                                    onClose: function() {
-                                        this.updateTransactionStatus(null, 'pending');
-                                    }.bind(this),
-                                    onError: function(result) {
-                                        this.updateTransactionStatus(result, 'pending');
-                                    }.bind(this)
-                                });
-                            } else if (data.payment_type === 'pay_later') {
-                                window.location.href = data.redirect;
-                            }
+                        const snapToken = '{{ $order->transaction->snap_token ?? "" }}';
+                        
+                        if (snapToken) {
+                            window.snap.pay(snapToken, {
+                                onSuccess: function(result) {
+                                    this.updateTransactionStatus(result, 'settlement');
+                                }.bind(this),
+                                onPending: function(result) {
+                                    this.updateTransactionStatus(result, 'pending');
+                                }.bind(this),
+                                onClose: function() {
+                                    this.updateTransactionStatus(null, 'pending');
+                                }.bind(this),
+                                onError: function(result) {
+                                    this.updateTransactionStatus(result, 'pending');
+                                }.bind(this)
+                            });
                         } else {
-                            alert(data.message || 'Terjadi kesalahan');
+                            alert('Session expired, silakan checkout ulang');
+                            window.location.href = '/'; 
                         }
                     } catch (error) {
                         console.error('Error:', error);
@@ -181,7 +170,6 @@
                         this.loading = false;
                     }
                 },
-
                 async updateTransactionStatus(result, status) {
                     try {
                         const response = await fetch('{{ route("payment.callback") }}', {

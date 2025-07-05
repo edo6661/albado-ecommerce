@@ -142,8 +142,11 @@ class MidtransService implements MidtransServiceInterface
                 'formatted_amount' => $grossAmount
             ]);
 
+            $order->load('transaction'); 
+
             return [
                 'success' => true,
+                'order' => $order,
                 'transaction' => $transaction,
                 'snap_token' => $paymentResult['snap_token'],
                 'redirect_url' => $paymentResult['redirect_url']

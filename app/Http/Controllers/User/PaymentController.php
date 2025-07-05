@@ -20,14 +20,13 @@ class PaymentController extends Controller
         protected OrderServiceInterface $orderService,
         protected MidtransServiceInterface $midtransService
     ) {}
-
     public function checkout(Request $request): JsonResponse
     {
         $request->validate([
             'selected_items' => 'required|array|min:1',
             'selected_items.*' => 'integer|exists:cart_items,id'
         ]);
-
+    
         try {
             $cartItems = $this->cartService->getCartItemsByIds(Auth::id(), $request->selected_items);
             
@@ -37,33 +36,41 @@ class PaymentController extends Controller
                     'message' => 'Item yang dipilih tidak ditemukan'
                 ], 400);
             }
-
-            
+    
             $orderData = [
                 'user_id' => Auth::id(),
                 'tax_rate' => 0 
             ];
-
+    
             $items = $cartItems->map(function ($cartItem) {
                 return [
                     'product_id' => $cartItem->product_id,
                     'quantity' => $cartItem->quantity
                 ];
             })->toArray();
-
+    
             $order = $this->orderService->createOrder($orderData, $items);
-
+            $paymentResult = $this->midtransService->createPayment($order);
             
+            if (!$paymentResult['success']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $paymentResult['error']
+                ], 400);
+            }
+    
             foreach ($cartItems as $cartItem) {
                 $this->cartService->removeFromCart(Auth::id(), $cartItem->product_id);
             }
-
+    
             return response()->json([
                 'success' => true,
                 'message' => 'Checkout berhasil',
-                'redirect' => route('checkout.summary', $order->id)
+                'redirect' => route('checkout.summary', $order->id),
+                'snap_token' => $paymentResult['snap_token'],
+                'redirect_url' => $paymentResult['redirect_url']
             ]);
-
+    
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -79,47 +86,6 @@ class PaymentController extends Controller
         }
 
         return view('user.checkout.summary', compact('order'));
-    }
-
-    public function processPayment(Request $request): JsonResponse
-    {
-        $request->validate([
-            'order_id' => 'required|integer|exists:orders,id',
-            'payment_method' => 'required|in:pay_now,pay_later'
-        ]);
-
-        try {
-            $order = $this->orderService->getOrderById($request->order_id);
-            if ($request->payment_method === 'pay_now') {
-                $paymentResult = $this->midtransService->createPayment($order);
-
-                if ($paymentResult['success']) {
-                    return response()->json([
-                        'success' => true,
-                        'payment_type' => 'midtrans',
-                        'snap_token' => $paymentResult['snap_token']
-                    ]);
-                } else {
-                    return response()->json([
-                        'success' => false,
-                        'message' => $paymentResult['error']
-                    ], 400);
-                }
-            } else {
-                
-                return response()->json([
-                    'success' => true,
-                    'payment_type' => 'pay_later',
-                    'redirect' => route('home') 
-                ]);
-            }
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 400);
-        }
     }
 
     public function paymentFinish(Request $request): View
@@ -148,10 +114,8 @@ class PaymentController extends Controller
                     'message' => 'Transaction not found'
                 ], 404);
             }
-
             
             $transactionStatus = $this->mapCallbackStatus($request->transaction_status);
-            
             
             $transaction->update([
                 'status' => $transactionStatus,

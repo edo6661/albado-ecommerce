@@ -104,56 +104,91 @@
             <div class="mt-6">
                 {{ $orders->links() }}
             </div>
+            <script>
+                function orderItem(orderId) {
+                    return {
+                        loading: false,
+                        
+                        async resumePayment() {
+                            this.loading = true;
+                            
+                            try {
+                                const response = await fetch(`/orders/${orderId}/resume-payment`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                    }
+                                });
+
+                                const data = await response.json();
+
+                                if (data.success) {
+                                    // Store reference to 'this' context
+                                    const self = this;
+                                    
+                                    window.snap.pay(data.snap_token, {
+                                        onSuccess: function(result) {
+                                            self.updateTransactionStatus(result, 'settlement');
+                                            window.location.href = '{{ route("payment.finish") }}';
+                                        },
+                                        onPending: function(result) {
+                                            self.updateTransactionStatus(result, 'pending');
+                                            window.location.href = '{{ route("payment.finish") }}';
+                                        },
+                                        onClose: function() {
+                                            window.location.href = '{{ route("payment.finish") }}';
+                                        },
+                                        onError: function(result) {
+                                            alert('Terjadi kesalahan saat memproses pembayaran');
+                                        }
+                                    });
+                                } else {
+                                    alert(data.message || 'Terjadi kesalahan');
+                                }
+                            } catch (error) {
+                                console.error('Error:', error);
+                                alert('Terjadi kesalahan saat memproses pembayaran');
+                            } finally {
+                                this.loading = false;
+                            }
+                        },
+                        
+                        async updateTransactionStatus(result, status) {
+                            try {
+                                const response = await fetch('{{ route("payment.callback") }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                    },
+                                    body: JSON.stringify({
+                                        order_id: orderId, // Use the orderId parameter instead of {{ $order->id }}
+                                        transaction_status: status,
+                                        midtrans_result: result
+                                    })
+                                });
+
+                                const data = await response.json();
+
+                                if (data.success) {
+                                    window.location.href = '{{ route("payment.finish") }}';
+                                } else {
+                                    console.error('Failed to update transaction status:', data.message);
+                                    window.location.href = '{{ route("payment.finish") }}';
+                                }
+                            } catch (error) {
+                                console.error('Error updating transaction status:', error);
+                                window.location.href = '{{ route("payment.finish") }}';
+                            }
+                        }
+                    }
+                }
+            </script>
         @endif
     </div>
 
-    <script>
-        function orderItem(orderId) {
-            return {
-                loading: false,
-                
-                async resumePayment() {
-                    this.loading = true;
-                    
-                    try {
-                        const response = await fetch(`/orders/${orderId}/resume-payment`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                            }
-                        });
-
-                        const data = await response.json();
-
-                        if (data.success) {
-                            window.snap.pay(data.snap_token, {
-                                onSuccess: function(result) {
-                                    window.location.href = '{{ route("payment.finish") }}';
-                                },
-                                onPending: function(result) {
-                                    window.location.href = '{{ route("payment.finish") }}';
-                                },
-                                onClose: function() {
-                                    // User closed the popup
-                                },
-                                onError: function(result) {
-                                    alert('Terjadi kesalahan saat memproses pembayaran');
-                                }
-                            });
-                        } else {
-                            alert(data.message || 'Terjadi kesalahan');
-                        }
-                    } catch (error) {
-                        console.error('Error:', error);
-                        alert('Terjadi kesalahan saat memproses pembayaran');
-                    } finally {
-                        this.loading = false;
-                    }
-                }
-            }
-        }
-    </script>
+    
 
     <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
 </x-layouts.plain-app>

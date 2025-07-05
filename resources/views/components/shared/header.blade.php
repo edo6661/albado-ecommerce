@@ -292,8 +292,7 @@ function headerData() {
         cartTotal: 0,
         selectedItems: [], 
         selectAll: false,
-        
-        // Debounce properties
+        checkoutLoading: false,
         updateTimers: {},
         loadingItems: {},
         
@@ -337,18 +336,14 @@ function headerData() {
             const item = this.cartItems.find(i => i.id === itemId);
             if (!item) return;
             
-            // Update UI immediately for better UX
             item.quantity = newQuantity;
             
-            // Set loading state
             this.loadingItems[itemId] = true;
             
-            // Clear existing timer
             if (this.updateTimers[itemId]) {
                 clearTimeout(this.updateTimers[itemId]);
             }
             
-            // Set debounced timer
             this.updateTimers[itemId] = setTimeout(async () => {
                 try {
                     const response = await fetch('{{ route("cart.update") }}', {
@@ -366,23 +361,20 @@ function headerData() {
                     const data = await response.json();
                     
                     if (data.success) {
-                        // Reload cart summary untuk memastikan data sinkron
                         await this.loadCartSummary();
                     } else {
-                        // Rollback jika gagal
                         console.error('Update failed:', data.message);
                         await this.loadCartSummary();
                     }
                 } catch (error) {
                     console.error('Error updating quantity:', error);
-                    // Rollback jika error
+                    //  jika error
                     await this.loadCartSummary();
                 } finally {
-                    // Clear loading state
                     delete this.loadingItems[itemId];
                     delete this.updateTimers[itemId];
                 }
-            }, 800); // 800ms debounce
+            }, 800); 
         },
         
         async removeFromCart(itemId) {
@@ -404,7 +396,6 @@ function headerData() {
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Hapus dari selectedItems jika ada
                     this.selectedItems = this.selectedItems.filter(id => id !== itemId);
                     await this.loadCartSummary();
                 }
@@ -423,12 +414,10 @@ function headerData() {
                     this.cartCount = data.cart_summary.total_quantity || 0;
                     this.cartTotal = data.cart_summary.total_price || 0;
                     
-                    // Pastikan selectedItems tetap valid setelah reload
                     this.selectedItems = this.selectedItems.filter(id => 
                         this.cartItems.some(item => item.id.toString() === id)
                     );
                     
-                    // Update selectAll status
                     this.selectAll = this.cartItems.length > 0 && this.selectedItems.length === this.cartItems.length;
                     
                 }
@@ -450,7 +439,11 @@ function headerData() {
                 alert('Pilih minimal 1 item untuk checkout');
                 return;
             }
-            console.log(this.selectedItems.map(id => Number(id)))
+            
+            if (this.checkoutLoading) return; 
+            
+            this.checkoutLoading = true;
+            
             try {
                 const response = await fetch('{{ route("checkout") }}', {
                     method: 'POST',
@@ -462,17 +455,22 @@ function headerData() {
                         selected_items: this.selectedItems.map(id => Number(id))
                     })
                 });
+                
                 const data = await response.json();
+                
                 if (data.success) {
                     window.location.href = data.redirect;
                 } else {
                     alert(data.message || 'Terjadi kesalahan saat checkout');
+                    this.checkoutLoading = false; 
                 }
             } catch (error) {
                 console.error('Error during checkout:', error);
                 alert('Terjadi kesalahan saat checkout');
+                this.checkoutLoading = false; 
             }
         }
+
     }
 }
 </script>

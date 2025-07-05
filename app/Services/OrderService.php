@@ -100,7 +100,7 @@ class OrderService implements OrderServiceInterface
 
             DB::commit();
 
-            return $this->getOrderById($order->id);
+            return $this->orderRepository->findById($order->id);
 
         } catch (\Exception $e) {
             DB::rollBack();

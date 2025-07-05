@@ -75,4 +75,13 @@ class Order extends Model
     {
         return $this->transaction && $this->transaction->status->isSuccess();
     }
+    public function getSnapToken(): ?string
+    {
+        return $this->transaction?->snap_token;
+    }
+
+    public function getSnapUrl(): ?string
+    {
+        return $this->transaction?->snap_url;
+    }
 }
