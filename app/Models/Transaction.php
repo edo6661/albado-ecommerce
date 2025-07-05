@@ -24,6 +24,9 @@ class Transaction extends Model
         'midtrans_response',
         'fraud_status',
         'status_message',
+        'snap_token',
+        'snap_url',
+    
     ];
 
     protected $casts = [

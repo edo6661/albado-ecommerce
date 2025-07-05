@@ -63,15 +63,12 @@ class OrderService implements OrderServiceInterface
         try {
             DB::beginTransaction();
 
-            // Validasi items
             if (empty($items)) {
                 throw new \InvalidArgumentException('Order harus memiliki minimal 1 item.');
             }
 
-            // Hitung total
             $totals = $this->calculateOrderTotal($items, $orderData['tax_rate'] ?? 0);
 
-            // Buat order
             $orderData = array_merge($orderData, [
                 'order_number' => Order::generateOrderNumber(),
                 'status' => OrderStatus::PENDING,
@@ -82,20 +79,22 @@ class OrderService implements OrderServiceInterface
 
             $order = $this->orderRepository->create($orderData);
 
-            // Buat order items
             foreach ($items as $item) {
                 $product = Product::find($item['product_id']);
                 if (!$product) {
                     throw new \InvalidArgumentException("Produk dengan ID {$item['product_id']} tidak ditemukan.");
                 }
-
+            
+                
+                $price = $product->discount_price ?? $product->price;
+            
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
                     'product_name' => $product->name,
-                    'product_price' => $product->price,
+                    'product_price' => $price,  
                     'quantity' => $item['quantity'],
-                    'total' => $product->price * $item['quantity'],
+                    'total' => $price * $item['quantity'],  
                 ]);
             }
 
@@ -176,7 +175,9 @@ class OrderService implements OrderServiceInterface
         foreach ($items as $item) {
             $product = Product::find($item['product_id']);
             if ($product) {
-                $subtotal += $product->price * $item['quantity'];
+                // UBAH BAGIAN INI - gunakan discount_price jika ada
+                $price = $product->discount_price ?? $product->price;
+                $subtotal += $price * $item['quantity'];
             }
         }
         

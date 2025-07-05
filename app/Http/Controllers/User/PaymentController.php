@@ -90,14 +90,6 @@ class PaymentController extends Controller
 
         try {
             $order = $this->orderService->getOrderById($request->order_id);
-
-            if ($order->user_id !== Auth::id()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized'
-                ], 403);
-            }
-
             if ($request->payment_method === 'pay_now') {
                 $paymentResult = $this->midtransService->createPayment($order);
 
@@ -132,17 +124,84 @@ class PaymentController extends Controller
 
     public function paymentFinish(Request $request): View
     {
-        return view('user.payment.finish');
+        $user = Auth::user();
+        $latestOrder = $user->orders()->with('latestTransaction')->latest()->first();
+        
+        return view('user.payment.finish', compact('latestOrder'));
+    }
+    public function paymentCallback(Request $request): JsonResponse
+    {
+        $request->validate([
+            'order_id' => 'required|integer|exists:orders,id',
+            'transaction_status' => 'required|string|in:settlement,pending,failure,cancel,expire,deny',
+            'midtrans_result' => 'nullable|array'
+        ]);
+
+        try {
+            $order = $this->orderService->getOrderById($request->order_id);
+            
+            $transaction = $order->transaction;
+            
+            if (!$transaction) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Transaction not found'
+                ], 404);
+            }
+
+            
+            $transactionStatus = $this->mapCallbackStatus($request->transaction_status);
+            
+            
+            $transaction->update([
+                'status' => $transactionStatus,
+                'midtrans_response' => $request->midtrans_result,
+                'settlement_time' => $request->transaction_status === 'settlement' ? now() : null,
+            ]);
+
+            
+            $orderStatus = $this->mapTransactionToOrderStatus($request->transaction_status);
+            $this->orderService->updateOrderStatus($order->id, $orderStatus);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Transaction status updated successfully',
+                'transaction_status' => $transactionStatus,
+                'order_status' => $orderStatus
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
     }
 
-    public function paymentUnfinish(Request $request): View
+    
+    private function mapCallbackStatus(string $callbackStatus): string
     {
-        return view('user.payment.unfinish');
+        return match($callbackStatus) {
+            'settlement' => 'settlement',
+            'pending' => 'pending',
+            'failure' => 'failure',
+            'cancel' => 'cancel',
+            'expire' => 'expire',
+            'deny' => 'deny',
+            default => 'pending'
+        };
     }
 
-    public function paymentError(Request $request): View
+    
+    private function mapTransactionToOrderStatus(string $transactionStatus): string
     {
-        return view('user.payment.error');
+        return match($transactionStatus) {
+            'settlement' => 'paid',
+            'pending' => 'pending',
+            'failure', 'cancel', 'expire', 'deny' => 'failed',
+            default => 'pending'
+        };
     }
+
 
 }

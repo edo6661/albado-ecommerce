@@ -44,6 +44,10 @@ class Order extends Model
     {
         return $this->hasOne(Transaction::class);
     }
+    public function latestTransaction()
+    {
+        return $this->hasOne(Transaction::class)->latest();
+    }
 
     public function getTotalQuantityAttribute(): int
     {

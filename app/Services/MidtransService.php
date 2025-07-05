@@ -129,6 +129,8 @@ class MidtransService implements MidtransServiceInterface
                 'gross_amount' => $grossAmount,
                 'currency' => 'IDR',
                 'transaction_time' => now(),
+                'snap_token' => $paymentResult['snap_token'],
+                'snap_url' => $paymentResult['redirect_url'],
             ]);
 
             DB::commit();
@@ -402,5 +404,18 @@ class MidtransService implements MidtransServiceInterface
         } elseif ($transaction->status->isFailed()) {
             Event::dispatch(new PaymentFailed($transaction));
         }
+    }
+    public function resumePayment(Transaction $transaction): array
+    {
+        if ($transaction->snap_token && $transaction->snap_url) {
+            return [
+                'success' => true,
+                'snap_token' => $transaction->snap_token,
+                'redirect_url' => $transaction->snap_url
+            ];
+        }
+        
+        $order = $transaction->order;
+        return $this->createPayment($order);
     }
 }

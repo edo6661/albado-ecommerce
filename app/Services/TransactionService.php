@@ -119,4 +119,14 @@ class TransactionService implements TransactionServiceInterface
     {
         return $this->transactionRepository->getFilteredTransactions($filters);
     }
+    public function resumePayment(int $transactionId): array
+    {
+        $transaction = $this->getTransactionById($transactionId);
+        
+        if (!$transaction->status->isPending()) {
+            throw new \Exception('Transaksi tidak dalam status pending');
+        }
+        
+        return app(MidtransService::class)->resumePayment($transaction);
+    }
 }

@@ -18,4 +18,5 @@ interface MidtransServiceInterface
     public function refundPayment(Transaction $transaction, ?float $amount = null): bool;
     
     public function updateTransactionFromMidtrans(Transaction $transaction, array $midtransData): Transaction;
+    public function resumePayment(Transaction $transaction): array;
 }

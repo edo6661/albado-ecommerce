@@ -20,6 +20,8 @@ return new class extends Migration
             $table->enum('status', ['pending', 'settlement', 'capture', 'deny', 'cancel', 'expire', 'failure'])->default('pending');
             $table->decimal('gross_amount', 15, 2);
             $table->string('currency', 3)->default('IDR');
+            $table->string('snap_token')->nullable();
+            $table->string('snap_url')->nullable();
             $table->timestamp('transaction_time')->nullable();
             $table->timestamp('settlement_time')->nullable();
             $table->json('midtrans_response')->nullable(); 

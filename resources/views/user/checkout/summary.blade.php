@@ -6,7 +6,6 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Order Items -->
             <div class="space-y-6">
                 <div class="bg-gray-50 p-6 rounded-lg">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4">
@@ -37,7 +36,6 @@
                     </div>
                 </div>
 
-                <!-- Order Summary -->
                 <div class="bg-gray-50 p-6 rounded-lg">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4">
                         <i class="fa-solid fa-receipt mr-2"></i>
@@ -64,7 +62,6 @@
                 </div>
             </div>
 
-            <!-- Payment Options -->
             <div class="space-y-6">
                 <div class="bg-gray-50 p-6 rounded-lg">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4">
@@ -73,7 +70,6 @@
                     </h2>
                     
                     <div class="space-y-4">
-                        <!-- Pay Now -->
                         <div class="p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -84,7 +80,6 @@
                             </div>
                         </div>
 
-                        <!-- Pay Later -->
                         <div class="p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -96,7 +91,6 @@
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
                     <div class="mt-6 space-y-3">
                         <button @click="processPayment('pay_now')" 
                                 :disabled="loading"
@@ -116,7 +110,6 @@
                     </div>
                 </div>
 
-                <!-- Order Status -->
                 <div class="bg-gray-50 p-6 rounded-lg">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4">
                         <i class="fa-solid fa-info-circle mr-2"></i>
@@ -161,17 +154,24 @@
 
                         if (data.success) {
                             if (data.payment_type === 'midtrans') {
-                                // Open Midtrans snap
+                                // Open Midtrans snap dengan callback yang diupdate
                                 window.snap.pay(data.snap_token, {
                                     onSuccess: function(result) {
-                                        window.location.href = '{{ route("payment.finish") }}';
-                                    },
+                                        // Transaksi berhasil, update status ke settlement
+                                        this.updateTransactionStatus(result, 'settlement');
+                                    }.bind(this),
                                     onPending: function(result) {
-                                        window.location.href = '{{ route("payment.finish") }}';
-                                    },
+                                        // Transaksi pending, tetap pending
+                                        this.updateTransactionStatus(result, 'pending');
+                                    }.bind(this),
+                                    onClose: function() {
+                                        // User menutup popup, anggap pending
+                                        this.updateTransactionStatus(null, 'pending');
+                                    }.bind(this),
                                     onError: function(result) {
-                                        alert('Pembayaran gagal: ' + result.status_message);
-                                    }
+                                        // Terjadi error, anggap pending
+                                        this.updateTransactionStatus(result, 'pending');
+                                    }.bind(this)
                                 });
                             } else if (data.payment_type === 'pay_later') {
                                 window.location.href = data.redirect;
@@ -185,11 +185,43 @@
                     } finally {
                         this.loading = false;
                     }
+                },
+
+                // Tambahkan fungsi baru untuk update status transaksi
+                async updateTransactionStatus(result, status) {
+                    try {
+                        const response = await fetch('{{ route("payment.callback") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            body: JSON.stringify({
+                                order_id: {{ $order->id }},
+                                transaction_status: status,
+                                midtrans_result: result
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // Redirect ke halaman finish
+                            window.location.href = '{{ route("payment.finish") }}';
+                        } else {
+                            console.error('Failed to update transaction status:', data.message);
+                            // Tetap redirect ke finish untuk menghindari user stuck
+                            window.location.href = '{{ route("payment.finish") }}';
+                        }
+                    } catch (error) {
+                        console.error('Error updating transaction status:', error);
+                        // Tetap redirect ke finish untuk menghindari user stuck
+                        window.location.href = '{{ route("payment.finish") }}';
+                    }
                 }
             }
         }
     </script>
 
-    <!-- Midtrans Snap -->
     <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
 </x-layouts.plain-app>
