@@ -259,12 +259,22 @@
                         <span class="text-lg font-bold text-blue-600" x-text="formatPrice(selectedTotal)"></span>
                     </div>
                     
-                    <button :disabled="selectedItems.length === 0" 
-                            @click="checkout()"
-                            class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">
-                        <i class="fa-solid fa-credit-card mr-2"></i>
-                        Checkout (<span x-text="selectedItems.length"></span> item)
-                    </button>
+                    <button :disabled="selectedItems.length === 0 || checkoutLoading" 
+                        @click="checkout()"
+                        class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">
+                        <template x-if="checkoutLoading">
+                            <span>
+                                <i class="fa-solid fa-spinner fa-spin mr-2"></i>
+                                Processing...
+                            </span>
+                        </template>
+                        <template x-if="!checkoutLoading">
+                            <span>
+                                <i class="fa-solid fa-credit-card mr-2"></i>
+                                Checkout (<span x-text="selectedItems.length"></span> item)
+                            </span>
+                        </template>
+                </button>
             </div>
             </div>
             </div>
