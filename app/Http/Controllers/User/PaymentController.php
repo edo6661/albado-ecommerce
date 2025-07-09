@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Contracts\Services\AddressServiceInterface;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Contracts\Services\CartServiceInterface;
-use App\Contracts\Services\CategoryServiceInterface;
 use App\Contracts\Services\MidtransServiceInterface;
 use App\Contracts\Services\OrderServiceInterface;
-use App\Contracts\Services\ProductServiceInterface;
+use App\Contracts\Services\ShippingServiceInterface;
 use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -18,28 +18,44 @@ class PaymentController extends Controller
     public function __construct(
         protected CartServiceInterface $cartService,
         protected OrderServiceInterface $orderService,
-        protected MidtransServiceInterface $midtransService
+        protected MidtransServiceInterface $midtransService,
+        protected AddressServiceInterface $addressService, 
+        protected ShippingServiceInterface $shippingService
+
     ) {}
     public function checkout(Request $request): JsonResponse
     {
-        $request->validate([
+                $request->validate([
             'selected_items' => 'required|array|min:1',
-            'selected_items.*' => 'integer|exists:cart_items,id'
+            'selected_items.*' => 'integer|exists:cart_items,id',
+            'address_id' => 'required|integer|exists:addresses,id,user_id,' . Auth::id(), 
         ]);
-    
+        
         try {
+            
+            $address = $this->addressService->getAddressById($request->address_id);
+            if (!$address) {
+                return response()->json(['success' => false, 'message' => 'Alamat pengiriman tidak ditemukan.'], 404);
+            }
+            
+            
+            $shipping = $this->shippingService->calculate($address->latitude, $address->longitude);
+            if (!$shipping['success']) {
+                return response()->json(['success' => false, 'message' => $shipping['message']], 400);
+            }
+
             $cartItems = $this->cartService->getCartItemsByIds(Auth::id(), $request->selected_items);
             
             if ($cartItems->isEmpty()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Item yang dipilih tidak ditemukan'
-                ], 400);
+                return response()->json(['success' => false, 'message' => 'Item yang dipilih tidak ditemukan'], 400);
             }
     
             $orderData = [
                 'user_id' => Auth::id(),
-                'tax_rate' => 0 
+                'tax_rate' => 0,
+                'shipping_cost' => $shipping['cost'], 
+                'distance_km' => $shipping['distance_km'], 
+                'shipping_address' => $address->getFullAddressAttribute(), 
             ];
     
             $items = $cartItems->map(function ($cartItem) {
@@ -50,6 +66,7 @@ class PaymentController extends Controller
             })->toArray();
     
             $order = $this->orderService->createOrder($orderData, $items);
+
             $paymentResult = $this->midtransService->createPayment($order);
             
             if (!$paymentResult['success']) {

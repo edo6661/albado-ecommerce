@@ -93,6 +93,11 @@
                                     <span x-show="loading">Processing...</span>
                                 </button>
                             @endif
+                             @if($order->status->value === 'shipped') 
+                                <a href="{{ route('orders.track', $order->id) }}" class="text-blue-600 hover:underline">
+                                    Lacak Pesanan
+                                </a>
+                            @endif
                         </div>
                     </div>
                 @endforeach

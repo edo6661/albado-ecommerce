@@ -10,6 +10,7 @@ use App\Contracts\Services\OrderServiceInterface;
 use App\Contracts\Services\ProductServiceInterface;
 use App\Contracts\Services\ProfileServiceInterface;
 use App\Contracts\Services\MidtransServiceInterface;
+use App\Contracts\Services\ShippingServiceInterface;
 use App\Contracts\Services\TransactionServiceInterface;
 use App\Contracts\Services\UserServiceInterface;
 use App\Services\AddressService;
@@ -22,6 +23,7 @@ use App\Services\ProfileService;
 use App\Services\TransactionService;
 use App\Services\UserService;
 use App\Services\MidtransService;
+use App\Services\ShippingService;
 use Illuminate\Support\ServiceProvider as SV;
 
 class ServiceProvider extends SV
@@ -41,6 +43,7 @@ class ServiceProvider extends SV
         $this->app->bind(MidtransServiceInterface::class, MidtransService::class);
         $this->app->bind(CartServiceInterface::class, CartService::class);
         $this->app->bind(AddressServiceInterface::class, AddressService::class);
+        $this->app->bind(ShippingServiceInterface::class, ShippingService::class);
     }
 
     /**

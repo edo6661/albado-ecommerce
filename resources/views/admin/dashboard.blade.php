@@ -194,7 +194,7 @@
                     <div class="p-6 border-b border-gray-200">
                         <div class="flex items-center justify-between">
                             <h3 class="text-lg font-semibold text-gray-900">Pengguna Terbaru</h3>
-                            <a href="{{ route('admin.users.index') }}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                            <a href="{{ route('admin.dashboard') }}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
                                 Lihat Semua <i class="fas fa-arrow-right ml-1"></i>
                             </a>
                         </div>

@@ -21,6 +21,10 @@ class Order extends Model
         'tax',
         'total',
         'notes',
+        'shipping_cost', 
+        'shipping_address', 
+        'distance_km', 
+
     ];
 
     protected $casts = [
@@ -28,6 +32,7 @@ class Order extends Model
         'subtotal' => 'decimal:2',
         'tax' => 'decimal:2',
         'total' => 'decimal:2',
+        'shipping_cost' => 'decimal:2', 
     ];
 
     public function user(): BelongsTo

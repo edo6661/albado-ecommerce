@@ -91,6 +91,14 @@ class MidtransService implements MidtransServiceInterface
                     'name' => $item->product_name,
                 ];
             }
+             if ($order->shipping_cost > 0) {
+                $itemDetails[] = [
+                    'id' => 'SHIPPING',
+                    'price' => $order->shipping_cost,
+                    'quantity' => 1,
+                    'name' => 'Ongkos Kirim',
+                ];
+            }
 
             if ($order->tax > 0) {
                 $itemDetails[] = [

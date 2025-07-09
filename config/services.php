@@ -39,6 +39,7 @@ return [
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI'),
         'maps_api_key' => env('GOOGLE_MAP_API_KEY'),
+        'backend_maps_api_key' => env('GOOGLE_MAP_BACKEND_API_KEY'),
     ],   
     'shipping' => [
         'store_lat' => env('STORE_LOCATION_LAT'),

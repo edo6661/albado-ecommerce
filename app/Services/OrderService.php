@@ -67,14 +67,26 @@ class OrderService implements OrderServiceInterface
                 throw new \InvalidArgumentException('Order harus memiliki minimal 1 item.');
             }
 
+            
             $totals = $this->calculateOrderTotal($items, $orderData['tax_rate'] ?? 0);
+            
+            
+            $shippingCost = $orderData['shipping_cost'] ?? 0;
+            $shippingAddress = $orderData['shipping_address'] ?? null;
+            $distanceKm = $orderData['distance_km'] ?? null;
+            
+            
+            $finalTotal = $totals['total'] + $shippingCost;
 
             $orderData = array_merge($orderData, [
                 'order_number' => Order::generateOrderNumber(),
                 'status' => OrderStatus::PENDING,
                 'subtotal' => $totals['subtotal'],
                 'tax' => $totals['tax'],
-                'total' => $totals['total'],
+                'total' => $finalTotal, 
+                'shipping_cost' => $shippingCost,
+                'shipping_address' => $shippingAddress,
+                'distance_km' => $distanceKm,
             ]);
 
             $order = $this->orderRepository->create($orderData);
@@ -175,7 +187,6 @@ class OrderService implements OrderServiceInterface
         foreach ($items as $item) {
             $product = Product::find($item['product_id']);
             if ($product) {
-                // UBAH BAGIAN INI - gunakan discount_price jika ada
                 $price = $product->discount_price ?? $product->price;
                 $subtotal += $price * $item['quantity'];
             }

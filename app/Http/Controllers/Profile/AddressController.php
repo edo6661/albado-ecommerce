@@ -9,6 +9,7 @@ use App\Http\Requests\Address\UpdateAddressRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
 
 class AddressController extends Controller
 {
@@ -124,5 +125,10 @@ class AddressController extends Controller
                 ->back()
                 ->with('error', 'Terjadi kesalahan saat mengatur alamat default: ' . $e->getMessage());
         }
+    }
+    public function getAddressesJson(Request $request): JsonResponse
+    {
+        $addresses = $this->addressService->getUserAddresses($request->user()->id);
+        return response()->json(['addresses' => $addresses]);
     }
 }

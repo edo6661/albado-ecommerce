@@ -60,16 +60,7 @@
                              x-transition:leave-start="transform opacity-100 scale-100"
                              x-transition:leave-end="transform opacity-0 scale-95"
                              class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                            <a href="{{ route('profile.show') }}" 
-                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <i class="fa-solid fa-user-edit mr-2"></i>
-                                Profil
-                            </a>
-                            <a href="{{ route('orders.index') }}" 
-                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <i class="fa-solid fa-shopping-bag mr-2"></i>
-                                Orders
-                            </a>
+                            
                             @if(Auth::user()->isAdmin())
                                 <a href="{{ route('admin.dashboard') }}" 
                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -95,6 +86,17 @@
                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     <i class="fa-solid fa-th-large mr-2"></i>
                                     Categories
+                                </a>
+                            @else
+                                <a href="{{ route('profile.show') }}" 
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fa-solid fa-user-edit mr-2"></i>
+                                    Profil
+                                </a>
+                                <a href="{{ route('orders.index') }}" 
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fa-solid fa-shopping-bag mr-2"></i>
+                                    Orders
                                 </a>
                             @endif
                             
@@ -258,8 +260,55 @@
                         <span class="text-lg font-semibold text-gray-900">Total Terpilih:</span>
                         <span class="text-lg font-bold text-blue-600" x-text="formatPrice(selectedTotal)"></span>
                     </div>
+                <div class="mt-4 mb-4">
+                    <label for="shipping_address" class="block text-sm font-medium text-gray-700 mb-2">Pilih Alamat Pengiriman:</label>
+                    <select name="shipping_address" id="shipping_address" x-model="selectedAddressId" @change="calculateShippingCost()"
+                        class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        <option value="">-- Pilih Alamat --</option>
+                        <template x-for="address in addresses" :key="address.id">
+                            <option :value="address.id" x-text="address.label + ' - ' + address.city"></option>
+                        </template>
+                    </select>
+                    <div x-show="shippingCostLoading" class="mt-2">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Menghitung ongkir...
+                    </div>
+                    <div x-show="shippingCost !== null && !shippingCostLoading" class="mt-2 text-sm text-gray-600">
+                        Ongkos Kirim: <span class="font-semibold" x-text="formatPrice(shippingCost)"></span>
+                    </div>
+                    <div x-show="shippingError" class="mt-2 text-sm text-red-500" x-text="shippingError"></div>
+                </div>
+                <div class="border-t border-gray-200 pt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-base text-gray-900">Subtotal:</span>
+                        <span class="text-base font-semibold text-gray-900" x-text="formatPrice(selectedTotal)"></span>
+                    </div>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-base text-gray-900">Ongkir:</span>
+                        <span class="text-base font-semibold text-gray-900" x-text="shippingCost !== null ? formatPrice(shippingCost) : 'Rp 0'"></span>
+                    </div>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-lg font-semibold text-gray-900">Total:</span>
+                        <span class="text-lg font-bold text-blue-600" x-text="formatPrice(grandTotal)"></span>
+                    </div>
+                    <button :disabled="selectedItems.length === 0 || checkoutLoading || selectedAddressId === '' || shippingCost === null" 
+                            @click="checkout()"
+                            class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">
+                            <template x-if="checkoutLoading">
+                                <span>
+                                    <i class="fa-solid fa-spinner fa-spin mr-2"></i>
+                                    Processing...
+                                </span>
+                            </template>
+                            <template x-if="!checkoutLoading">
+                                <span>
+                                    <i class="fa-solid fa-credit-card mr-2"></i>
+                                    Checkout (<span x-text="selectedItems.length"></span> item)
+                                </span>
+                            </template>
+                    </button>
+                </div>
                     
-                    <button :disabled="selectedItems.length === 0 || checkoutLoading" 
+                {{-- <button :disabled="selectedItems.length === 0 || checkoutLoading || selectedAddressId === '' || shippingCost === null" 
                         @click="checkout()"
                         class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">
                         <template x-if="checkoutLoading">
@@ -274,7 +323,7 @@
                                 Checkout (<span x-text="selectedItems.length"></span> item)
                             </span>
                         </template>
-                </button>
+                </button> --}}
             </div>
             </div>
             </div>
@@ -305,13 +354,74 @@ function headerData() {
         checkoutLoading: false,
         updateTimers: {},
         loadingItems: {},
+        addresses: [], 
+        selectedAddressId: '', 
+        shippingCost: null, 
+        shippingCostLoading: false, 
+        shippingError: '', 
+
         
         init() {
             @auth
                 this.loadCartSummary();
+                this.loadAddresses();
             @endauth
         },
-        
+        get grandTotal() {
+            const sub = this.selectedTotal || 0;
+            const ship = this.shippingCost || 0;
+            return sub + ship;
+        },
+        async loadAddresses() {
+            try {
+                const response = await fetch('{{ route("profile.addresses.json") }}'); 
+                const data = await response.json();
+                this.addresses = data.addresses;
+                const defaultAddress = this.addresses.find(addr => addr.is_default);
+                if (defaultAddress) {
+                    this.selectedAddressId = defaultAddress.id;
+                    this.calculateShippingCost();
+                }
+            } catch (error) {
+                console.error('Gagal memuat alamat:', error);
+            }
+        },
+        async calculateShippingCost() {
+            if (!this.selectedAddressId) {
+                this.shippingCost = null;
+                this.shippingError = '';
+                return;
+            }
+
+            this.shippingCostLoading = true;
+            this.shippingError = '';
+            this.shippingCost = null;
+
+            try {
+                const response = await fetch('{{ route("shipping.calculate") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ address_id: this.selectedAddressId })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    this.shippingCost = data.cost;
+                } else {
+                    this.shippingError = data.message || 'Gagal menghitung ongkir.';
+                }
+
+            } catch (error) {
+                console.error('Error calculating shipping:', error);
+                this.shippingError = 'Tidak dapat terhubung ke server.';
+            } finally {
+                this.shippingCostLoading = false;
+            }
+        },
         get selectedTotal() {
             
             return this.cartItems
@@ -449,6 +559,10 @@ function headerData() {
                 alert('Pilih minimal 1 item untuk checkout');
                 return;
             }
+            if (!this.selectedAddressId) {
+                alert('Silakan pilih alamat pengiriman terlebih dahulu.');
+                return;
+            }
             
             if (this.checkoutLoading) return; 
             
@@ -462,7 +576,8 @@ function headerData() {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     },
                     body: JSON.stringify({
-                        selected_items: this.selectedItems.map(id => Number(id))
+                        selected_items: this.selectedItems.map(id => Number(id)),
+                        address_id: this.selectedAddressId 
                     })
                 });
                 
