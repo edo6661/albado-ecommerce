@@ -65,29 +65,31 @@
                      x-data="productGrid()">
                     @foreach($featuredProducts as $product)
                     <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-200 group">
-                        <div class="aspect-square bg-gray-200 overflow-hidden relative">
-                            @if($product->images->first())
-                                <img src="{{ $product->images->first()->path_url }}" 
-                                     alt="{{ $product->name }}"
-                                     class="w-full h-full object-cover group-hover:scale-105 transition duration-200">
-                            @else
-                                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                                    <i class="fa-solid fa-image text-4xl text-gray-400"></i>
-                                </div>
-                            @endif
-                            
-                            @if($product->discount_price)
-                                <div class="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-md text-sm font-semibold">
-                                    -{{ number_format((($product->price - $product->discount_price) / $product->price) * 100, 0) }}%
-                                </div>
-                            @endif
-                            
-                            @if($product->stock <= 0)
-                                <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                                    <span class="text-white font-semibold">Stok Habis</span>
-                                </div>
-                            @endif
-                        </div>
+                        <a href="{{ route('products.show', $product->slug) }}">
+                            <div class="aspect-square bg-gray-200 overflow-hidden relative">
+                                @if($product->images->first())
+                                    <img src="{{ $product->images->first()->path_url }}" 
+                                        alt="{{ $product->name }}"
+                                        class="w-full h-full object-cover group-hover:scale-105 transition duration-200">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                                        <i class="fa-solid fa-image text-4xl text-gray-400"></i>
+                                    </div>
+                                @endif
+                                
+                                @if($product->discount_price)
+                                    <div class="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-md text-sm font-semibold">
+                                        -{{ number_format((($product->price - $product->discount_price) / $product->price) * 100, 0) }}%
+                                    </div>
+                                @endif
+                                
+                                @if($product->stock <= 0)
+                                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                                        <span class="text-white font-semibold">Stok Habis</span>
+                                    </div>
+                                @endif
+                            </div>
+                        </a>
                         
                         <div class="p-4">
                             <div class="mb-2">
