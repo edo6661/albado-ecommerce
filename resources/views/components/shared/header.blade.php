@@ -11,11 +11,11 @@
             @auth
                 @if(Auth::user()->isUser())
                     <nav class="hidden md:flex space-x-8">
-                        <a href="#categories" class="text-gray-700 hover:text-blue-600 transition duration-200">
+                        <a href="#" class="text-gray-700 hover:text-blue-600 transition duration-200">
                             <i class="fa-solid fa-th-large mr-1"></i>
                             Kategori
                         </a>
-                        <a href="#products" class="text-gray-700 hover:text-blue-600 transition duration-200">
+                        <a href="#" class="text-gray-700 hover:text-blue-600 transition duration-200">
                             <i class="fa-solid fa-box mr-1"></i>
                             Produk
                         </a>
@@ -141,12 +141,12 @@
                         x-transition:leave-end="opacity-0 transform scale-95"
                         class="md:hidden border-t border-gray-200 bg-white">
                     <div class="px-2 pt-2 pb-3 space-y-1">
-                        <a href="#categories" 
+                        <a href="#" 
                             class="block px-3 py-2 text-gray-700 hover:text-blue-600 transition duration-200">
                             <i class="fa-solid fa-th-large mr-2"></i>
                             Kategori
                         </a>
-                        <a href="#products" 
+                        <a href="#" 
                             class="block px-3 py-2 text-gray-700 hover:text-blue-600 transition duration-200">
                             <i class="fa-solid fa-box mr-2"></i>
                             Produk
