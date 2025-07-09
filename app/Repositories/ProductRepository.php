@@ -20,7 +20,19 @@ class ProductRepository implements ProductRepositoryInterface
     {
         return $this->model->with(['category', 'images'])->orderBy('created_at', 'desc')->paginate($perPage);
     }
-
+    public function getProductBySlug(string $slug): ?Product
+    {
+        return $this->model->with(['category', 'images'])->where('slug', $slug)->first();
+    }
+    public function getRelatedProducts(int $productId, int $categoryId, int $limit = 4): Collection
+    {
+        return $this->model->with(['category', 'images'])
+            ->where('id', '!=', $productId)
+            ->where('category_id', $categoryId)
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
+    }
     public function create(array $data): Product
     {
         return $this->model->create(
@@ -99,4 +111,60 @@ class ProductRepository implements ProductRepositoryInterface
             ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
     }
+        public function getFilteredPaginatedProducts(array $filters, int $perPage = 12, int $page = 1): LengthAwarePaginator
+    {
+        $query = $this->model->with(['category', 'images'])
+            ->where('is_active', true);
+
+        if (!empty($filters['search'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('name', 'like', '%' . $filters['search'] . '%')
+                  ->orWhere('description', 'like', '%' . $filters['search'] . '%');
+            });
+        }
+
+        if (!empty($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id']);
+        }
+
+        if (isset($filters['min_price']) && is_numeric($filters['min_price'])) {
+            $query->where('price', '>=', $filters['min_price']);
+        }
+
+        if (isset($filters['max_price']) && is_numeric($filters['max_price'])) {
+            $query->where('price', '<=', $filters['max_price']);
+        }
+        
+        $query->reorder();
+
+        $sortBy = $filters['sort_by'] ?? 'latest';
+
+        switch ($sortBy) {
+            case 'price_low':
+            case 'price_asc':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'price_high':
+            case 'price_desc':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'name':
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('name', 'desc');
+                break;
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'latest':
+            default:
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
+
+        return $query->paginate($perPage, ['*'], 'page', $page);
+    }
+
 }

@@ -20,6 +20,10 @@ class CategoryRepository implements CategoryRepositoryInterface
     {
         return $this->model->with(['products'])->orderBy('created_at', 'desc')->paginate($perPage);
     }
+    public function getCategoryBySlug(string $slug): ?Category
+    {
+        return $this->model->with(['products'])->where('slug', $slug)->first();
+    }
 
     public function create(array $data): Category
     {

@@ -17,4 +17,7 @@ interface ProductRepositoryInterface
     public function getRecentProducts(int $limit = 10): Collection;
     public function getFilteredProducts(array $filters = []): Collection;
     public function getPaginatedActiveProducts(int $perPage = 12, int $page = 1): LengthAwarePaginator;
+    public function getFilteredPaginatedProducts(array $filters, int $perPage = 12, int $page = 1): LengthAwarePaginator;
+    public function getProductBySlug(string $slug): ?Product;
+    public function getRelatedProducts(int $productId, int $categoryId, int $limit = 4): Collection;
 }

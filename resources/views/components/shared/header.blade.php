@@ -8,23 +8,16 @@
                     Toko Online
                 </a>
             </div>
-            @auth
-                @if(Auth::user()->isUser())
-                    <nav class="hidden md:flex space-x-8">
-                        <a href="#" class="text-gray-700 hover:text-blue-600 transition duration-200">
-                            <i class="fa-solid fa-th-large mr-1"></i>
-                            Kategori
-                        </a>
-                        <a href="#" class="text-gray-700 hover:text-blue-600 transition duration-200">
-                            <i class="fa-solid fa-box mr-1"></i>
-                            Produk
-                        </a>
-                    </nav>
-                @endif
-                
-            @endauth
-
-            
+            <nav class="hidden md:flex space-x-8">
+                <a href="{{ route('categories.index') }}" class="text-gray-700 hover:text-blue-600 transition duration-200">
+                    <i class="fa-solid fa-th-large mr-1"></i>
+                    Kategori
+                </a>
+                <a href="{{ route('products.index') }} " class="text-gray-700 hover:text-blue-600 transition duration-200">
+                    <i class="fa-solid fa-box mr-1"></i>
+                    Produk
+                </a>
+            </nav>
 
             <div class="flex items-center space-x-4">
                 @auth
@@ -129,33 +122,30 @@
                 @endauth
             </div>
         </div>
-        @auth
-            @if(Auth::user()->isUser())
-                <div x-show="mobileMenuOpen" 
-                        @click.away="mobileMenuOpen = false"
-                        x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0 transform scale-95"
-                        x-transition:enter-end="opacity-100 transform scale-100"
-                        x-transition:leave="transition ease-in duration-150"
-                        x-transition:leave-start="opacity-100 transform scale-100"
-                        x-transition:leave-end="opacity-0 transform scale-95"
-                        class="md:hidden border-t border-gray-200 bg-white">
-                    <div class="px-2 pt-2 pb-3 space-y-1">
-                        <a href="#" 
-                            class="block px-3 py-2 text-gray-700 hover:text-blue-600 transition duration-200">
-                            <i class="fa-solid fa-th-large mr-2"></i>
-                            Kategori
-                        </a>
-                        <a href="#" 
-                            class="block px-3 py-2 text-gray-700 hover:text-blue-600 transition duration-200">
-                            <i class="fa-solid fa-box mr-2"></i>
-                            Produk
-                        </a>
-                    </div>
-                </div>
-            @endif
+        
+        <div x-show="mobileMenuOpen" 
+                @click.away="mobileMenuOpen = false"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 transform scale-95"
+                x-transition:enter-end="opacity-100 transform scale-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 transform scale-100"
+                x-transition:leave-end="opacity-0 transform scale-95"
+                class="md:hidden border-t border-gray-200 bg-white">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="{{ route('categories.index') }}" 
+                    class="block px-3 py-2 text-gray-700 hover:text-blue-600 transition duration-200">
+                    <i class="fa-solid fa-th-large mr-2"></i>
+                    Kategori
+                </a>
+                <a href="{{ route('products.index') }}" 
+                    class="block px-3 py-2 text-gray-700 hover:text-blue-600 transition duration-200">
+                    <i class="fa-solid fa-box mr-2"></i>
+                    Produk
+                </a>
+            </div>
+        </div>
             
-        @endauth
 
         
     </div>

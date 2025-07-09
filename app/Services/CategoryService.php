@@ -154,4 +154,9 @@ class CategoryService implements CategoryServiceInterface
     {
         return $this->categoryRepository->getCategoryHasManyProducts($limit);
     }
+    public function getCategoryBySlug(string $slug): ?Category
+    {
+        return $this->categoryRepository->getCategoryBySlug($slug);
+    }
 }
+
