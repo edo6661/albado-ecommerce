@@ -14,6 +14,8 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             ProductSeeder::class,
             ProductImageSeeder::class,
+            RatingSeeder::class, 
+            RatingImageSeeder::class, 
             // CartSeeder::class,
             // OrderSeeder::class,
         ]);

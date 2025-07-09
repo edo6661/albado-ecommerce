@@ -2,7 +2,6 @@
     <x-slot:title>{{ $product->name }} - Detail Produk</x-slot:title>
     
     <div class="min-h-screen bg-gray-50">
-        <!-- Breadcrumb -->
         <div class="bg-white shadow-sm border-b">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <nav class="flex" aria-label="Breadcrumb">
@@ -105,10 +104,8 @@
                     @endif
                     </div>
 
-                    <!-- Product Info -->
                     <div class="mt-8 lg:mt-0 lg:col-start-2">
                         <div class="px-6 py-8">
-                            <!-- Category Badge -->
                             <div class="mb-4">
                                 <a href="{{ route('categories.show', $product->category->slug) }}" 
                                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors">
@@ -116,10 +113,8 @@
                                 </a>
                             </div>
 
-                            <!-- Product Name -->
                             <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ $product->name }}</h1>
 
-                            <!-- Price -->
                             <div class="mb-6">
                                 @if($product->discount_price)
                                     <div class="flex items-center space-x-3">
@@ -140,7 +135,6 @@
                                 @endif
                             </div>
 
-                            <!-- Stock Status -->
                             <div class="mb-6">
                                 @if($product->stock > 0)
                                     <div class="flex items-center space-x-2">
@@ -155,13 +149,11 @@
                                 @endif
                             </div>
 
-                            <!-- Description -->
                             <div class="mb-8">
                                 <h3 class="text-lg font-semibold text-gray-900 mb-3">Deskripsi Produk</h3>
                                 <p class="text-gray-600 leading-relaxed">{{ $product->description }}</p>
                             </div>
 
-                            <!-- Add to Cart -->
                             <div class="space-y-4" x-data="productDetail()">
                                 <div class="flex items-center space-x-4">
                                     <div class="flex items-center border rounded-lg">
@@ -186,7 +178,6 @@
                                             :disabled="loading || {{ $product->stock <= 0 ? 'true' : 'false' }}"
                                             class="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">
                                         <i class="fa-solid fa-cart-plus mr-2"></i>
-                                        <span x-text="loading ? 'Menambahkan...' : 'Tambah ke Keranjang'"></span>
                                     </button>
                                 </div>
                             </div>
@@ -195,7 +186,6 @@
                 </div>
             </div>
 
-            <!-- Related Products -->
             @if($relatedProducts->count() > 0)
                 <div class="mt-16">
                     <h2 class="text-2xl font-bold text-gray-900 mb-8">Produk Terkait</h2>
@@ -245,6 +235,142 @@
                     </div>
                 </div>
             @endif
+            <div class="mt-16">
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="px-6 py-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Rating & Ulasan</h2>
+                        
+                        <div class="mb-8">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="text-center">
+                                    <div class="text-6xl font-bold text-gray-900 mb-2">
+                                        {{ number_format($ratingStats['average_rating'], 1) }}
+                                    </div>
+                                    <div class="flex justify-center mb-2">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <i class="fa-solid fa-star text-xl {{ $i <= $ratingStats['average_rating'] ? 'text-yellow-400' : 'text-gray-300' }}"></i>
+                                        @endfor
+                                    </div>
+                                    <p class="text-gray-600">{{ $ratingStats['total_ratings'] }} ulasan</p>
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    @for($i = 5; $i >= 1; $i--)
+                                        <div class="flex items-center">
+                                            <span class="text-sm text-gray-600 w-8">{{ $i }}</span>
+                                            <i class="fa-solid fa-star text-yellow-400 text-sm mx-2"></i>
+                                            <div class="flex-1 bg-gray-200 rounded-full h-2 mx-2">
+                                                <div class="bg-yellow-400 h-2 rounded-full" 
+                                                    style="width: {{ $ratingStats['rating_distribution'][$i]['percentage'] }}%"></div>
+                                            </div>
+                                            <span class="text-sm text-gray-600 w-12">{{ $ratingStats['rating_distribution'][$i]['count'] }}</span>
+                                        </div>
+                                    @endfor
+                                </div>
+                            </div>
+                        </div>
+
+                        @auth
+                            <div class="mb-8 p-4 bg-gray-50 rounded-lg">
+                                @if($userRating)
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="font-medium text-gray-900">Rating Anda:</p>
+                                            <div class="flex items-center mt-1">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <i class="fa-solid fa-star text-lg {{ $i <= $userRating->rating ? 'text-yellow-400' : 'text-gray-300' }}"></i>
+                                                @endfor
+                                                <span class="ml-2 text-gray-600">{{ $userRating->rating }}/5</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <a href="{{ route('ratings.edit', $userRating->id) }}" 
+                                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                                Edit
+                                            </a>
+                                            <form method="POST" action="{{ route('ratings.destroy', $userRating->id) }}" 
+                                                class="inline" onsubmit="return confirm('Yakin ingin menghapus rating?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" 
+                                                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                @elseif($canUserRate)
+                                    <div class="text-center">
+                                        <p class="text-gray-600 mb-3">Anda sudah membeli produk ini. Berikan rating dan ulasan!</p>
+                                        <a href="{{ route('ratings.create', $product->id) }}" 
+                                        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                            <i class="fa-solid fa-star mr-2"></i>
+                                            Beri Rating
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                        @endauth
+
+                        @if($ratings->count() > 0)
+                            <div class="space-y-6">
+                                <h3 class="text-lg font-semibold text-gray-900">Ulasan Terbaru</h3>
+                                
+                                @foreach($ratings as $rating)
+                                    <div class="border-b border-gray-200 pb-6 last:border-b-0">
+                                        <div class="flex items-start justify-between mb-3">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                                                    {{ strtoupper(substr($rating->user->name, 0, 1)) }}
+                                                </div>
+                                                <div class="ml-3">
+                                                    <p class="font-medium text-gray-900">{{ $rating->user->name }}</p>
+                                                    <div class="flex items-center">
+                                                        @for($i = 1; $i <= 5; $i++)
+                                                            <i class="fa-solid fa-star text-sm {{ $i <= $rating->rating ? 'text-yellow-400' : 'text-gray-300' }}"></i>
+                                                        @endfor
+                                                        <span class="ml-2 text-sm text-gray-600">{{ $rating->rating }}/5</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <p class="text-sm text-gray-500">{{ $rating->created_at->diffForHumans() }}</p>
+                                        </div>
+                                        
+                                        @if($rating->comment)
+                                            <p class="text-gray-700 mb-3">{{ $rating->comment }}</p>
+                                        @endif
+                                        
+                                        @if($rating->images->count() > 0)
+                                            <div class="flex space-x-2 overflow-x-auto">
+                                                @foreach($rating->images as $image)
+                                                    <img src="{{ $image->path_url }}" 
+                                                        alt="Rating image" 
+                                                        class="w-20 h-20 object-cover rounded-lg flex-shrink-0">
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                                
+                                @if($ratingStats['total_ratings'] > 5)
+                                    <div class="text-center">
+                                        <a href="{{ route('products.ratings', $product->id) }}" 
+                                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                                            Lihat Semua Ulasan ({{ $ratingStats['total_ratings'] }})
+                                            <i class="fa-solid fa-arrow-right ml-2"></i>
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                        @else
+                            <div class="text-center py-8">
+                                <i class="fa-solid fa-star text-4xl text-gray-300 mb-4"></i>
+                                <p class="text-gray-600">Belum ada ulasan untuk produk ini</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

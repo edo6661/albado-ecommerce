@@ -36,4 +36,27 @@ use HasFactory;
     {
         return $this->hasMany(ProductImage::class)->orderBy('order');
     }
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(Rating::class);
+    }
+    
+    public function getAverageRatingAttribute(): float
+    {
+        return $this->ratings()->avg('rating') ?? 0;
+    }
+
+    public function getRatingCountAttribute(): int
+    {
+        return $this->ratings()->count();
+    }
+
+    public function getRatingStatsAttribute(): array
+    {
+        $stats = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $stats[$i] = $this->ratings()->where('rating', $i)->count();
+        }
+        return $stats;
+    }
 }

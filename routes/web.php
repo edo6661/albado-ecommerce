@@ -15,6 +15,8 @@ Route::middleware(['auth','verified'])->group(function () {
     require __DIR__ . '/user/cart.php';
     require __DIR__ . '/user/order.php';
     require __DIR__ . '/user/payment.php';
+    require __DIR__ . '/user/rating.php';
+
     Route::middleware('admin')->group(function () {
         Route::name('admin.')->prefix('admin')->group(function () {
             require __DIR__ . '/admin/product.php';

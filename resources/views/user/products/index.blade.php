@@ -80,6 +80,8 @@
                                     <option value="latest" {{ $sortBy == 'latest' ? 'selected' : '' }}>Terbaru</option>
                                     <option value="price_low" {{ $sortBy == 'price_low' ? 'selected' : '' }}>Harga Terendah</option>
                                     <option value="price_high" {{ $sortBy == 'price_high' ? 'selected' : '' }}>Harga Tertinggi</option>
+                                    <option value="rating_high" {{ $sortBy == 'rating_high' ? 'selected' : '' }}>Rating Tertinggi</option>
+                                    <option value="rating_low" {{ $sortBy == 'rating_low' ? 'selected' : '' }}>Rating Terendah</option>
                                     <option value="name" {{ $sortBy == 'name' ? 'selected' : '' }}>Nama A-Z</option>
                                 </select>
                             </div>
@@ -147,6 +149,21 @@
                                         </h3>
                                         
                                         <p class="text-sm text-gray-600 mb-3 line-clamp-2">{{ $product->description }}</p>
+                                        <div class="flex items-center mb-3">
+                                            <div class="flex items-center">
+                                                @if(isset($product->rating_stats) && 
+                                                    array_key_exists('total_ratings', $product->rating_stats) && 
+                                                    $product->rating_stats['total_ratings'] > 0)
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <i class="fa-solid fa-star text-sm {{ $i <= $product->rating_stats['average_rating'] ? 'text-yellow-400' : 'text-gray-300' }}"></i>
+                                                    @endfor
+                                                    <span class="text-sm text-gray-600 ml-2">
+                                                        {{ $product->rating_stats['average_rating'] }}/5 
+                                                        ({{ $product->rating_stats['total_ratings'] }} ulasan)
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
                                         
                                         <div class="flex items-center justify-between mb-3">
                                             <div class="flex flex-col">

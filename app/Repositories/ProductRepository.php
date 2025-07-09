@@ -111,7 +111,7 @@ class ProductRepository implements ProductRepositoryInterface
             ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
     }
-        public function getFilteredPaginatedProducts(array $filters, int $perPage = 12, int $page = 1): LengthAwarePaginator
+    public function getFilteredPaginatedProducts(array $filters, int $perPage = 12, int $page = 1): LengthAwarePaginator
     {
         $query = $this->model->with(['category', 'images'])
             ->where('is_active', true);
@@ -154,6 +154,18 @@ class ProductRepository implements ProductRepositoryInterface
                 break;
             case 'name_desc':
                 $query->orderBy('name', 'desc');
+                break;
+            case 'rating_high':
+                $query->leftJoin('ratings', 'products.id', '=', 'ratings.product_id')
+                    ->selectRaw('products.*, AVG(ratings.rating) as avg_rating')
+                    ->groupBy('products.id')
+                    ->orderBy('avg_rating', 'desc');
+                break;
+            case 'rating_low':
+                $query->leftJoin('ratings', 'products.id', '=', 'ratings.product_id')
+                    ->selectRaw('products.*, AVG(ratings.rating) as avg_rating')
+                    ->groupBy('products.id')
+                    ->orderBy('avg_rating', 'asc');
                 break;
             case 'oldest':
                 $query->orderBy('created_at', 'asc');
