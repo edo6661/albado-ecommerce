@@ -25,7 +25,7 @@ class HomeController extends Controller
 
     public function index(Request $request): View
     {
-        $categories = $this->categoryService->getRecentCategories(8);
+        $categories = $this->categoryService->getCategoryHasManyProducts(8);
         $featuredProducts = $this->productService->getRecentProducts(8);
         return view('home', compact('categories', 'featuredProducts'));
     }

@@ -150,4 +150,8 @@ class CategoryService implements CategoryServiceInterface
     {
         return $this->categoryRepository->getFilteredCategories($filters);
     }
+    public function getCategoryHasManyProducts(int $limit = 10): Collection
+    {
+        return $this->categoryRepository->getCategoryHasManyProducts($limit);
+    }
 }

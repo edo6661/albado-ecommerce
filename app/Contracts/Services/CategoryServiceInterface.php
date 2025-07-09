@@ -18,4 +18,6 @@ interface CategoryServiceInterface
     public function getCategoryStatistics(): array;
     public function getRecentCategories(int $limit = 10): Collection;
     public function getFilteredCategories(array $filters = []): Collection;
+    public function getCategoryHasManyProducts(int $limit = 10): Collection;
+
 }

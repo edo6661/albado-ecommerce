@@ -56,7 +56,14 @@ class CategoryRepository implements CategoryRepositoryInterface
             ->limit($limit)
             ->get();
     }
-
+    public function getCategoryHasManyProducts(int $limit = 10): Collection
+    {
+        return $this->model->with(['products'])
+            ->whereHas('products')
+            ->orderBy('')
+            ->limit($limit)
+            ->get();
+    }
     public function getFilteredCategories(array $filters = []): Collection
     {
         $query = $this->model->with(['products'])
