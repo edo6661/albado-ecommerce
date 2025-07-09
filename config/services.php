@@ -38,6 +38,11 @@ return [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI'),
+        'maps_api_key' => env('GOOGLE_MAP_API_KEY'),
     ],   
-
+    'shipping' => [
+        'store_lat' => env('STORE_LOCATION_LAT'),
+        'store_lng' => env('STORE_LOCATION_LNG'),
+        'cost_per_km' => env('SHIPPING_COST_PER_KM', 2500),
+    ],
 ];

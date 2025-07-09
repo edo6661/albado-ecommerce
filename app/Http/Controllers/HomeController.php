@@ -27,11 +27,7 @@ class HomeController extends Controller
     {
         $categories = $this->categoryService->getRecentCategories(8);
         $featuredProducts = $this->productService->getRecentProducts(8);
-        
-        $page = $request->get('page', 1);
-        $activeProducts = $this->productService->getPaginatedActiveProducts(12, $page);
-        
-        return view('home', compact('categories', 'featuredProducts', 'activeProducts'));
+        return view('home', compact('categories', 'featuredProducts'));
     }
 
     public function addToCart(Request $request): JsonResponse

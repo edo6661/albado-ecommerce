@@ -63,9 +63,6 @@
                                     <h4 class="font-medium text-gray-900 mb-2">Status Pembayaran</h4>
                                     <div class="space-y-1">
                                         <p class="text-sm text-gray-600">
-                                            Metode: {{ $order->transaction->payment_type?->label() ?? 'Belum dipilih' }}
-                                        </p>
-                                        <p class="text-sm text-gray-600">
                                             Status: 
                                             <span class="font-medium 
                                                 @if($order->transaction->isPending()) text-yellow-600
@@ -140,6 +137,7 @@
                                             window.location.href = '{{ route("payment.finish") }}';
                                         },
                                         onError: function(result) {
+                                            console.error('Payment error:', result);
                                             alert('Terjadi kesalahan saat memproses pembayaran');
                                         }
                                     });

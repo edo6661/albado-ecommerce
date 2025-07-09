@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Contracts\Services\TransactionServiceInterface;
 use App\Contracts\Repositories\TransactionRepositoryInterface;
+use App\Contracts\Services\MidtransServiceInterface;
 use App\Models\Transaction;
 use App\Enums\TransactionStatus;
 use App\Exceptions\TransactionNotFoundException;
@@ -15,7 +16,8 @@ use Illuminate\Support\Facades\Log;
 class TransactionService implements TransactionServiceInterface
 {
     public function __construct(
-        protected TransactionRepositoryInterface $transactionRepository
+        protected TransactionRepositoryInterface $transactionRepository,
+        protected MidtransServiceInterface $midtransService
     ) {}
 
     public function getTransactionById(int $id): Transaction
@@ -126,7 +128,6 @@ class TransactionService implements TransactionServiceInterface
         if (!$transaction->status->isPending()) {
             throw new \Exception('Transaksi tidak dalam status pending');
         }
-        
-        return app(MidtransService::class)->resumePayment($transaction);
+        return $this->midtransService->resumePayment($transaction);
     }
 }

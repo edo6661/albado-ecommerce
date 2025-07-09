@@ -1,10 +1,8 @@
-{{-- resources/views/profile/show.blade.php --}}
 <x-layouts.plain-app>
     <x-slot:title>Profil Saya</x-slot:title>
     
     <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-2xl mx-auto">
-            {{-- Header --}}
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-extrabold text-gray-900">Profil Saya</h1>
                 <p class="mt-2 text-sm text-gray-600">
@@ -12,7 +10,6 @@
                 </p>
             </div>
 
-            {{-- Success Messages --}}
             @if (session('success'))
                 <div class="rounded-md bg-green-50 p-4 mb-6">
                     <div class="flex">
@@ -30,9 +27,7 @@
                 </div>
             @endif
 
-            {{-- Profile Card --}}
             <div class="bg-white shadow-sm rounded-lg overflow-hidden">
-                {{-- Avatar Section --}}
                 <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-8">
                     <div class="flex items-center justify-center">
                         <div class="relative">
@@ -60,10 +55,8 @@
                     </div>
                 </div>
 
-                {{-- Profile Information --}}
                 <div class="px-6 py-6">
                     <div class="grid grid-cols-1 gap-6">
-                        {{-- Basic Information --}}
                         <div>
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Dasar</h3>
                             <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -102,7 +95,6 @@
                             </dl>
                         </div>
 
-                        {{-- Account Information --}}
                         <div class="border-t border-gray-200 pt-6">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Akun</h3>
                             <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -123,7 +115,6 @@
                     </div>
                 </div>
 
-                {{-- Action Buttons --}}
                 <div class="bg-gray-50 px-6 py-4">
                     <div class="flex justify-between items-center">
                         <a href="{{ route('home') }}" 
@@ -139,6 +130,13 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                             Edit Profil
+                        </a>
+                        <a href="{{ route('profile.addresses.index') }}" 
+                           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            Addresses
                         </a>
                     </div>
                 </div>
