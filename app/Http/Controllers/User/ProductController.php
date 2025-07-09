@@ -42,21 +42,6 @@ class ProductController extends Controller
         $products = $this->productService->getFilteredPaginatedProducts($filters, $perPage, $page);
         $categories = $this->categoryService->getCategoryHasManyProducts(50);
 
-        $products->getCollection()->transform(function ($product) {
-            try {
-                $ratingService = app(RatingServiceInterface::class);
-                $product->rating_stats = $ratingService->getProductRatingStats($product->id);
-            } catch (\Exception $e) {
-                $product->rating_stats = [
-                    'average_rating' => 0,
-                    'total_ratings' => 0,
-                    'rating_distribution' => []
-                ];
-            }
-            return $product;
-        });
-        
-
         return view('user.products.index', compact('products', 'categories', 'search', 'categoryId', 'sortBy', 'minPrice', 'maxPrice'));
     }
     public function show(string $slug): View

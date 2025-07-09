@@ -5,7 +5,8 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Contracts\Services\RatingServiceInterface;
 use App\Contracts\Services\ProductServiceInterface;
-use App\Http\Requests\RatingRequest;
+use App\Http\Requests\RatingRequest\StoreRatingRequest;
+use App\Http\Requests\RatingRequest\UpdateRatingRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -37,7 +38,7 @@ class RatingController extends Controller
         return view('user.ratings.create', compact('product'));
     }
 
-    public function store(RatingRequest $request): JsonResponse
+    public function store(StoreRatingRequest $request): JsonResponse
     {
         try {
             $data = $request->validated();
@@ -89,7 +90,7 @@ class RatingController extends Controller
         return view('user.ratings.edit', compact('rating'));
     }
 
-    public function update(RatingRequest $request, int $id): JsonResponse
+    public function update(UpdateRatingRequest $request, int $id): JsonResponse
     {
         try {
             $rating = $this->ratingService->getRatingById($id);

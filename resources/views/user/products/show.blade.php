@@ -336,8 +336,8 @@
                                             <p class="text-sm text-gray-500">{{ $rating->created_at->diffForHumans() }}</p>
                                         </div>
                                         
-                                        @if($rating->comment)
-                                            <p class="text-gray-700 mb-3">{{ $rating->comment }}</p>
+                                        @if($rating->review)
+                                            <p class="text-gray-700 mb-3">{{ $rating->review }}</p>
                                         @endif
                                         
                                         @if($rating->images->count() > 0)

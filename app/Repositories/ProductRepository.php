@@ -13,31 +13,32 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function findById(int $id): ?Product
     {
-        return $this->model->with(['category', 'images'])->find($id);
+        return $this->model->with(['category', 'images', 'ratings'])->find($id);
     }
 
     public function getAllPaginated(int $perPage = 15): LengthAwarePaginator
     {
-        return $this->model->with(['category', 'images'])->orderBy('created_at', 'desc')->paginate($perPage);
+        return $this->model->with(['category', 'images', 'ratings'])->orderBy('created_at', 'desc')->paginate($perPage);
     }
+
     public function getProductBySlug(string $slug): ?Product
     {
-        return $this->model->with(['category', 'images'])->where('slug', $slug)->first();
+        return $this->model->with(['category', 'images', 'ratings'])->where('slug', $slug)->first();
     }
+
     public function getRelatedProducts(int $productId, int $categoryId, int $limit = 4): Collection
     {
-        return $this->model->with(['category', 'images'])
+        return $this->model->with(['category', 'images', 'ratings'])
             ->where('id', '!=', $productId)
             ->where('category_id', $categoryId)
             ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->get();
     }
+
     public function create(array $data): Product
     {
-        return $this->model->create(
-            $data
-        );
+        return $this->model->create($data);
     }
 
     public function update(Product $product, array $data): bool
@@ -49,6 +50,7 @@ class ProductRepository implements ProductRepositoryInterface
     {
         return $product->delete();
     }
+
     public function getProductStatistics(): array
     {
         $totalProducts = $this->model->count();
@@ -68,14 +70,15 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function getRecentProducts(int $limit = 10): Collection
     {
-        return $this->model->with(['category', 'images'])
+        return $this->model->with(['category', 'images', 'ratings'])
             ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->get();
     }
+
     public function getFilteredProducts(array $filters = []): Collection
     {
-        $query = $this->model->with(['category', 'images'])
+        $query = $this->model->with(['category', 'images', 'ratings'])
             ->orderBy('created_at', 'desc');
 
         if (!empty($filters['category'])) {
@@ -104,16 +107,18 @@ class ProductRepository implements ProductRepositoryInterface
 
         return $query->get();
     }
+
     public function getPaginatedActiveProducts(int $perPage = 12, int $page = 1): LengthAwarePaginator
     {
-        return $this->model->with(['category', 'images'])
+        return $this->model->with(['category', 'images', 'ratings'])
             ->where('is_active', true)
             ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
     }
+
     public function getFilteredPaginatedProducts(array $filters, int $perPage = 12, int $page = 1): LengthAwarePaginator
     {
-        $query = $this->model->with(['category', 'images'])
+        $query = $this->model->with(['category', 'images', 'ratings'])
             ->where('is_active', true);
 
         if (!empty($filters['search'])) {
@@ -178,5 +183,4 @@ class ProductRepository implements ProductRepositoryInterface
 
         return $query->paginate($perPage, ['*'], 'page', $page);
     }
-
 }
