@@ -55,7 +55,7 @@
                         </div>
                         <div class="p-6">
                             @if($category->image)
-                                <div class="relative group max-w-md mx-auto">
+                                <div class="relative group max-w-3xl mx-auto">
                                     <img class="w-full h-64 object-cover rounded-lg shadow-sm" 
                                          src="{{ $category->image_url }}" 
                                          alt="{{ $category->name }}">

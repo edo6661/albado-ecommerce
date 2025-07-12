@@ -25,7 +25,7 @@
     
     $sizeClasses = [
         'sm' => 'max-w-sm',
-        'md' => 'max-w-md',
+        'md' => 'max-w-3xl',
         'lg' => 'max-w-lg', 
         'xl' => 'max-w-xl',
         '2xl' => 'max-w-2xl',

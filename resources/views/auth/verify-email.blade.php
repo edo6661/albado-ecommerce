@@ -3,7 +3,7 @@
     <x-slot:title>Verifikasi Email</x-slot:title>
     
     <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-md w-full space-y-8">
+        <div class="max-w-3xl w-full space-y-8">
             <div>
                 <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-yellow-100">
                     <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
