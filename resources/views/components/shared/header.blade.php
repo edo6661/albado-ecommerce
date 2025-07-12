@@ -1,4 +1,3 @@
-
 <header class="bg-white shadow-md sticky top-0 z-40" x-data="headerData()">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
@@ -86,6 +85,11 @@
                                     <i class="fa-solid fa-user-edit mr-2"></i>
                                     Profil
                                 </a>
+                                <a href="{{ route('profile.addresses.index') }}" 
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fa-solid fa-map-marker-alt mr-2"></i>
+                                    Kelola Alamat
+                                </a>
                                 <a href="{{ route('orders.index') }}" 
                                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     <i class="fa-solid fa-shopping-bag mr-2"></i>
@@ -145,9 +149,6 @@
                 </a>
             </div>
         </div>
-            
-
-        
     </div>
 
     @auth
@@ -250,15 +251,34 @@
                         <span class="text-lg font-semibold text-gray-900">Total Terpilih:</span>
                         <span class="text-lg font-bold text-blue-600" x-text="formatPrice(selectedTotal)"></span>
                     </div>
+                
                 <div class="mt-4 mb-4">
                     <label for="shipping_address" class="block text-sm font-medium text-gray-700 mb-2">Pilih Alamat Pengiriman:</label>
-                    <select name="shipping_address" id="shipping_address" x-model="selectedAddressId" @change="calculateShippingCost()"
-                        class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                        <option value="">-- Pilih Alamat --</option>
-                        <template x-for="address in addresses" :key="address.id">
-                            <option :value="address.id" x-text="address.label + ' - ' + address.city"></option>
-                        </template>
-                    </select>
+                    
+                    <!-- Tampilkan dropdown jika ada alamat -->
+                    <div x-show="addresses.length > 0">
+                        <select name="shipping_address" id="shipping_address" x-model="selectedAddressId" @change="calculateShippingCost()"
+                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <option value="">-- Pilih Alamat --</option>
+                            <template x-for="address in addresses" :key="address.id">
+                                <option :value="address.id" x-text="address.label + ' - ' + address.city"></option>
+                            </template>
+                        </select>
+                    </div>
+                    
+                    <!-- Tampilkan pesan jika tidak ada alamat -->
+                    <div x-show="addresses.length === 0" class="text-center py-4">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <i class="fa-solid fa-exclamation-triangle text-yellow-600 text-xl mb-2"></i>
+                            <p class="text-sm text-yellow-800 mb-3">Anda belum memiliki alamat pengiriman</p>
+                            <a href="{{ route('profile.addresses.index') }}" 
+                               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition duration-200">
+                                <i class="fa-solid fa-plus mr-2"></i>
+                                Tambah Alamat
+                            </a>
+                        </div>
+                    </div>
+                    
                     <div x-show="shippingCostLoading" class="mt-2">
                         <i class="fa-solid fa-spinner fa-spin"></i> Menghitung ongkir...
                     </div>
@@ -267,6 +287,7 @@
                     </div>
                     <div x-show="shippingError" class="mt-2 text-sm text-red-500" x-text="shippingError"></div>
                 </div>
+                
                 <div class="border-t border-gray-200 pt-4">
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-base text-gray-900">Subtotal:</span>
@@ -280,7 +301,7 @@
                         <span class="text-lg font-semibold text-gray-900">Total:</span>
                         <span class="text-lg font-bold text-blue-600" x-text="formatPrice(grandTotal)"></span>
                     </div>
-                    <button :disabled="selectedItems.length === 0 || checkoutLoading || selectedAddressId === '' || shippingCost === null" 
+                    <button :disabled="selectedItems.length === 0 || checkoutLoading || selectedAddressId === '' || shippingCost === null || addresses.length === 0" 
                             @click="checkout()"
                             class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">
                             <template x-if="checkoutLoading">
@@ -289,31 +310,20 @@
                                     Processing...
                                 </span>
                             </template>
-                            <template x-if="!checkoutLoading">
+                            <template x-if="!checkoutLoading && addresses.length > 0">
                                 <span>
                                     <i class="fa-solid fa-credit-card mr-2"></i>
                                     Checkout (<span x-text="selectedItems.length"></span> item)
                                 </span>
                             </template>
+                            <template x-if="!checkoutLoading && addresses.length === 0">
+                                <span>
+                                    <i class="fa-solid fa-exclamation-triangle mr-2"></i>
+                                    Tambah Alamat Terlebih Dahulu
+                                </span>
+                            </template>
                     </button>
                 </div>
-                    
-                {{-- <button :disabled="selectedItems.length === 0 || checkoutLoading || selectedAddressId === '' || shippingCost === null" 
-                        @click="checkout()"
-                        class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">
-                        <template x-if="checkoutLoading">
-                            <span>
-                                <i class="fa-solid fa-spinner fa-spin mr-2"></i>
-                                Processing...
-                            </span>
-                        </template>
-                        <template x-if="!checkoutLoading">
-                            <span>
-                                <i class="fa-solid fa-credit-card mr-2"></i>
-                                Checkout (<span x-text="selectedItems.length"></span> item)
-                            </span>
-                        </template>
-                </button> --}}
             </div>
             </div>
             </div>
@@ -366,18 +376,23 @@ function headerData() {
             try {
                 const response = await fetch('{{ route("profile.addresses.json") }}'); 
                 const data = await response.json();
-                this.addresses = data.addresses;
-                const defaultAddress = this.addresses.find(addr => addr.is_default);
-                if (defaultAddress) {
-                    this.selectedAddressId = defaultAddress.id;
-                    this.calculateShippingCost();
+                this.addresses = data.addresses || [];
+                
+                // Hanya set alamat default jika ada alamat
+                if (this.addresses.length > 0) {
+                    const defaultAddress = this.addresses.find(addr => addr.is_default);
+                    if (defaultAddress) {
+                        this.selectedAddressId = defaultAddress.id;
+                        this.calculateShippingCost();
+                    }
                 }
             } catch (error) {
                 console.error('Gagal memuat alamat:', error);
+                this.addresses = [];
             }
         },
         async calculateShippingCost() {
-            if (!this.selectedAddressId) {
+            if (!this.selectedAddressId || this.addresses.length === 0) {
                 this.shippingCost = null;
                 this.shippingError = '';
                 return;
@@ -549,6 +564,12 @@ function headerData() {
                 alert('Pilih minimal 1 item untuk checkout');
                 return;
             }
+            
+            if (this.addresses.length === 0) {
+                alert('Anda belum memiliki alamat pengiriman. Silakan tambah alamat terlebih dahulu.');
+                return;
+            }
+            
             if (!this.selectedAddressId) {
                 alert('Silakan pilih alamat pengiriman terlebih dahulu.');
                 return;
