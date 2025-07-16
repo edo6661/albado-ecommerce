@@ -143,21 +143,4 @@ class RatingController extends Controller
             ], 500);
         }
     }
-    public function check(Request $request): JsonResponse
-    {
-        $request->validate([
-            'product_id' => 'required|integer|exists:products,id',
-        ]);
-        $userId = Auth::id();
-        $productId = $request->input('product_id');
-        
-        if (!$this->ratingService->canUserRateProduct($userId, $productId)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda tidak dapat memberikan rating untuk produk ini.'
-            ], 403);
-        }
-        
-        return response()->json(['success' => true]);
-    }
 }
