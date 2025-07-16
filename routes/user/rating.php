@@ -12,8 +12,8 @@ Route::prefix('ratings')->name('ratings.')->group(function () {
     Route::get('/{rating}/edit', [RatingController::class, 'edit'])->name('edit');
     Route::put('/{rating}', [RatingController::class, 'update'])->name('update');
     Route::delete('/{rating}', [RatingController::class, 'destroy'])->name('destroy');
+    Route::post('/check', [RatingController::class, 'check'])->name('check');
 });
 
 Route::get('/products/{product}/ratings', [RatingController::class, 'productRatings'])
     ->name('products.ratings');
-

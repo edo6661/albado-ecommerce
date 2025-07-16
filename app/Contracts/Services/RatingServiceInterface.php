@@ -16,4 +16,5 @@ interface RatingServiceInterface
     public function deleteRating(int $id): bool;
     public function getProductRatingStats(int $productId): array;
     public function canUserRateProduct(int $userId, int $productId): bool;
+    public function hasUserRatedProduct(int $userId, int $productId): bool;
 }

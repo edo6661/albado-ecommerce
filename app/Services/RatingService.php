@@ -129,13 +129,15 @@ class RatingService implements RatingServiceInterface
         if ($existingRating) {
             return false;
         }
-
-        
         $hasPurchased = OrderItem::whereHas('order', function ($query) use ($userId) {
             $query->where('user_id', $userId)
-                  ->where('status', 'shipped'); 
+                  ->where('status', 'delivered'); 
         })->where('product_id', $productId)->exists();
 
         return $hasPurchased;
+    }
+    public function hasUserRatedProduct(int $userId, int $productId): bool
+    {
+        return $this->ratingRepository->findByUserAndProduct($userId, $productId) !== null;
     }
 }

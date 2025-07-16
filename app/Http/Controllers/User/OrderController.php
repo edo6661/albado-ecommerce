@@ -5,20 +5,35 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Contracts\Services\OrderServiceInterface;
+use App\Contracts\Services\RatingServiceInterface;
 use App\Contracts\Services\TransactionServiceInterface;
 use App\Models\Order;
+use Illuminate\Support\Facades\Auth;
 
 
 class OrderController extends Controller
 {
     public function __construct(
         protected OrderServiceInterface $orderService,
-        protected TransactionServiceInterface $transactionService
+        protected TransactionServiceInterface $transactionService,
+        protected RatingServiceInterface $ratingService
     ) {}
 
-    public function index(Request $request)
+    public function index()
     {
-        $orders = $this->orderService->getUserOrdersPaginated(auth()->id());
+        $orders = $this->orderService->getUserOrdersPaginated(Auth::id());
+        
+         foreach ($orders as $order) {
+            foreach ($order->items as $item) {
+                $userRating = $this->ratingService->getUserRatingForProduct(
+                    Auth::id(), 
+                    $item->product_id
+                );
+                
+                $item->user_has_rated = $userRating !== null;
+                $item->user_rating = $userRating; 
+            }
+        }
         
         return view('user.orders.index', compact('orders'));
     }

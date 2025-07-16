@@ -240,7 +240,6 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            alert('Rating berhasil ditambahkan!');
                             window.location.href = '{{ route("ratings.index") }}';
                         } else {
                             // Menampilkan pesan error dari server jika ada

@@ -71,6 +71,7 @@ class ProductRepository implements ProductRepositoryInterface
     public function getRecentProducts(int $limit = 10): Collection
     {
         return $this->model->with(['category', 'images', 'ratings'])
+            ->where('is_active', true)
             ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->get();

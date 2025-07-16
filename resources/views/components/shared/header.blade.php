@@ -261,7 +261,7 @@
                             class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                             <option value="">-- Pilih Alamat --</option>
                             <template x-for="address in addresses" :key="address.id">
-                                <option :value="address.id" x-text="address.label + ' - ' + address.city"></option>
+                                <option :value="address.id" x-text="address.label ?? '' + ' - ' + address.city"></option>
                             </template>
                         </select>
                     </div>

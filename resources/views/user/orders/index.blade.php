@@ -40,16 +40,38 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
-                                <h4 class="font-medium text-gray-900 mb-2">Item Pesanan</h4>
                                 <div class="space-y-2">
                                     @foreach($order->items->take(3) as $item)
-                                        <div class="flex items-center space-x-3">
+                                        <a class="flex items-center space-x-3 my-2" href="{{ route('products.show', $item->product->slug) }}">
                                             <img src="{{ $item->product->images->first()?->path_url ?? '/default-product.jpg' }}" 
                                                  class="w-10 h-10 object-cover rounded">
                                             <div>
                                                 <p class="text-sm font-medium text-gray-900">{{ $item->product_name }}</p>
                                                 <p class="text-xs text-gray-500">{{ $item->quantity }}x</p>
                                             </div>
+                                            
+                                             @if($order->status->value === 'delivered')
+                                                @if(!$item->user_has_rated)
+                                                    <a href="{{ route('ratings.create', [
+                                                        'product' => $item->product_id
+                                                    ]) }}" class="text-blue-600 hover:underline text-sm">
+                                                        Rating
+                                                    </a>
+                                                @else
+                                                    <div class="flex items-center space-x-1">
+                                                        <div class="flex text-yellow-400">
+                                                            @for($i = 1; $i <= 5; $i++)
+                                                                @if($i <= $item->user_rating->rating)
+                                                                    <i class="fa-solid fa-star text-xs"></i>
+                                                                @else
+                                                                    <i class="fa-regular fa-star text-xs"></i>
+                                                                @endif
+                                                            @endfor
+                                                        </div>
+                                                        <span class="text-gray-600 text-xs">{{ $item->user_rating->rating }}/5</span>
+                                                    </div>
+                                                @endif
+                                            @endif
                                         </div>
                                     @endforeach
                                     @if($order->items->count() > 3)
@@ -98,6 +120,7 @@
                                     Lacak Pesanan
                                 </a>
                             @endif
+                             
                         </div>
                     </div>
                 @endforeach

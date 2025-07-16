@@ -25,7 +25,7 @@ class PaymentController extends Controller
     ) {}
     public function checkout(Request $request): JsonResponse
     {
-                $request->validate([
+        $request->validate([
             'selected_items' => 'required|array|min:1',
             'selected_items.*' => 'integer|exists:cart_items,id',
             'address_id' => 'required|integer|exists:addresses,id,user_id,' . Auth::id(), 
