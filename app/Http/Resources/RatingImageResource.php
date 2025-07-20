@@ -11,7 +11,8 @@ class RatingImageResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'url' => Storage::disk('s3')->url($this->path),
+            'path' => $this->path,
+            'url' => $this->path_url,
             'order' => $this->order,
         ];
     }

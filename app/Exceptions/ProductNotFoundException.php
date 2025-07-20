@@ -11,6 +11,13 @@ class ProductNotFoundException extends Exception
     {
         parent::__construct($message ?? $this->message, $code, $previous);
     }
+    public function render($request)
+    {
+        return response()->json([
+            'error' => $this->message,
+        ], $this->code);
+    }
+    
 }
 
 
