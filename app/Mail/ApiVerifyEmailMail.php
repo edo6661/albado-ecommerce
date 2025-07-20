@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Mail;
+
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -8,8 +9,8 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class VerifyEmailMail extends Mailable
-    {
+class ApiVerifyEmailMail extends Mailable
+{
     use Queueable, SerializesModels;
 
     public function __construct(
@@ -20,7 +21,7 @@ class VerifyEmailMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Verifikasi Email Anda - ' . config('app.name'),
+            subject: 'Verifikasi Email Anda (API) - ' . config('app.name'),
         );
     }
 
@@ -29,8 +30,8 @@ class VerifyEmailMail extends Mailable
         return new Content(
             view: 'emails.verify-email',
             with: [
-                'user' => $this->user,
-                'verificationUrl' => $this->verificationUrl,
+                'user' => $user,
+                'verificationUrl' => $verificationUrl,
             ]
         );
     }

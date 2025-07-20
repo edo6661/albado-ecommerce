@@ -1,13 +1,11 @@
 <?php
-// app/Http/Requests/Api/AddToCartRequest.php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
-
-class AddToCartRequest extends FormRequest
+class LoginRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -17,23 +15,20 @@ class AddToCartRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_id' => 'required|integer|exists:products,id',
-            'quantity' => 'required|integer|min:1'
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+            'remember' => ['boolean'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'product_id.required' => 'ID produk harus diisi',
-            'product_id.integer' => 'ID produk harus berupa angka',
-            'product_id.exists' => 'Produk tidak ditemukan',
-            'quantity.required' => 'Quantity harus diisi',
-            'quantity.integer' => 'Quantity harus berupa angka',
-            'quantity.min' => 'Quantity minimal adalah 1'
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'password.required' => 'Password wajib diisi.',
         ];
     }
-
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(

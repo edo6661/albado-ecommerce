@@ -9,20 +9,26 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens; 
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens; 
 
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role', 
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    protected $attributes = [
+        'role' => 'user', 
     ];
 
     protected function casts(): array
@@ -43,14 +49,17 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(SocialAccount::class);
     }
+    
     public function isAdmin(): bool
     {
         return $this->role === UserRole::ADMIN;
     }
+    
     public function isUser(): bool
     {
         return $this->role === UserRole::USER;
     }
+    
     public function hasSocialLogin(): bool
     {
         return $this->socialAccounts()->exists();
@@ -71,6 +80,7 @@ class User extends Authenticatable implements MustVerifyEmail
         $socialAccount = $this->socialAccounts()->first();
         return $socialAccount ? $socialAccount->provider : null;
     }
+    
     public function cart(): HasOne
     {
         return $this->hasOne(Cart::class);
@@ -85,6 +95,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->cart ?: $this->cart()->create();
     }
+    
     public function addresses(): HasMany
     {
         return $this->hasMany(Address::class);
@@ -94,10 +105,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(Address::class)->where('is_default', true);
     }
+    
     public function ratings(): HasMany
     {
         return $this->hasMany(Rating::class);
     }
-
 }
-

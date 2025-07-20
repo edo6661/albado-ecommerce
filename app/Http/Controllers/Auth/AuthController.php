@@ -12,7 +12,8 @@ use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;class AuthController extends Controller
+use Illuminate\View\View;
+class AuthController extends Controller
 {
     public function __construct(
         protected AuthServiceInterface $authService
