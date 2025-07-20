@@ -10,6 +10,9 @@ use App\Http\Controllers\Api\Profile\ProfileController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Api\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Api\Admin\TransactionController as AdminTransactionController; 
+
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -33,7 +36,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
-        Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
+        Route::post('/verify-email', action: [AuthController::class, 'verifyEmail']);
         Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
     });
     Route::prefix('cart')->group(function () {
@@ -80,18 +83,47 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
             Route::get('/statistics/summary', [AdminProductController::class, 'statistics']); 
             Route::get('/filtered/search', [AdminProductController::class, 'filtered']);  
         });
-    });
-    Route::prefix('categories')->group(function () {
-        Route::get('/', [AdminCategoryController::class, 'index']);                    
-        Route::post('/', [AdminCategoryController::class, 'store']);                   
-        Route::get('/{id}', [AdminCategoryController::class, 'show']);                 
-        Route::put('/{id}', [AdminCategoryController::class, 'update']);               
-        Route::patch('/{id}', [AdminCategoryController::class, 'update']);             
-        Route::delete('/{id}', [AdminCategoryController::class, 'destroy']);           
-        Route::post('/bulk-delete', [AdminCategoryController::class, 'bulkDestroy']);  
-        Route::delete('/{categoryId}/image', [AdminCategoryController::class, 'deleteImage']); 
-        Route::get('/statistics/summary', [AdminCategoryController::class, 'statistics']); 
-        Route::get('/filtered/search', [AdminCategoryController::class, 'filtered']);  
-        Route::get('/recent/list', [AdminCategoryController::class, 'recent']);        
+        Route::prefix('categories')->group(function () {
+            Route::get('/', [AdminCategoryController::class, 'index']);                    
+            Route::post('/', [AdminCategoryController::class, 'store']);               
+            Route::get('/{id}', [AdminCategoryController::class, 'show']);                 
+            Route::put('/{id}', [AdminCategoryController::class, 'update']);               
+            Route::patch('/{id}', [AdminCategoryController::class, 'update']);             
+            Route::delete('/{id}', [AdminCategoryController::class, 'destroy']);           
+            Route::post('/bulk-delete', [AdminCategoryController::class, 'bulkDestroy']);  
+            Route::delete('/{categoryId}/image', [AdminCategoryController::class, 'deleteImage']); 
+            Route::get('/statistics/summary', [AdminCategoryController::class, 'statistics']); 
+            Route::get('/filtered/search', [AdminCategoryController::class, 'filtered']);  
+            Route::get('/recent/list', [AdminCategoryController::class, 'recent']);        
+        });
+        Route::prefix('orders')->group(function () {
+            Route::get('/', [AdminOrderController::class, 'index']);                      
+            Route::get('/statistics', [AdminOrderController::class, 'statistics']);      
+            Route::get('/filtered', [AdminOrderController::class, 'filtered']);          
+            Route::get('/users', [AdminOrderController::class, 'users']);                
+            Route::get('/status-options', [AdminOrderController::class, 'statusOptions']); 
+            Route::post('/export-pdf', [AdminOrderController::class, 'exportPdf']);      
+            Route::get('/{id}', [AdminOrderController::class, 'show']);                  
+            Route::get('/{id}/edit', [AdminOrderController::class, 'edit']);             
+            Route::put('/{id}', [AdminOrderController::class, 'update']);                
+            Route::patch('/{id}', [AdminOrderController::class, 'update']);              
+            Route::patch('/{id}/status', [AdminOrderController::class, 'updateStatus']); 
+            Route::patch('/{id}/cancel', [AdminOrderController::class, 'cancel']);       
+        });
+        Route::prefix('transactions')->group(function () {
+            Route::get('/', [AdminTransactionController::class, 'index']);                        
+            Route::get('/statistics', [AdminTransactionController::class, 'statistics']);        
+            Route::get('/filtered', [AdminTransactionController::class, 'filtered']);            
+            Route::get('/status-options', [AdminTransactionController::class, 'statusOptions']); 
+            Route::post('/export-pdf', [AdminTransactionController::class, 'exportPdf']);        
+            Route::get('/orders/{orderId}', [AdminTransactionController::class, 'byOrder']);     
+            Route::get('/payment-types/{paymentType}', [AdminTransactionController::class, 'byPaymentType']); 
+            Route::get('/{id}', [AdminTransactionController::class, 'show']);                    
+            Route::get('/{id}/edit', [AdminTransactionController::class, 'edit']);               
+            Route::put('/{id}', [AdminTransactionController::class, 'update']);                  
+            Route::patch('/{id}', [AdminTransactionController::class, 'update']);                
+            Route::patch('/{id}/status', [AdminTransactionController::class, 'updateStatus']);   
+            Route::delete('/{id}', [AdminTransactionController::class, 'destroy']);              
+        });
     });
 });
