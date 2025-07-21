@@ -13,7 +13,7 @@ class UpdateCategoryRequest extends FormRequest
     public function authorize(): bool
     {
         // Pastikan user adalah admin
-        return auth()->user() && auth()->user()->hasRole('admin');
+        return true;
     }
 
     public function rules(): array

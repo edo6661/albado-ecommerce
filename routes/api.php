@@ -24,7 +24,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
         Route::post('/reset-password', [AuthController::class, 'resetPassword']);
         Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmailFromLink'])->name('api.verification.verify');
-        Route::post('/refresh', [AuthController::class, 'refresh']); 
+        // Route::post('/refresh', [AuthController::class, 'refresh']); 
     });
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::get('/categories/{slug}', [CategoryController::class, 'show']);
@@ -75,18 +75,16 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
         Route::get('/{orderId}/track', [OrderTrackingController::class, 'show'])->name('api.orders.track');
     });
     Route::get('/products/{productId}/my-rating', [RatingController::class, 'userProductRating']);
-    Route::prefix('admin')->group(function () {
+    Route::prefix('admin')->middleware(['api.admin'])->group(function () {
         Route::prefix('products')->group(function () {
             Route::get('/', [AdminProductController::class, 'index']);                    
             Route::post('/', [AdminProductController::class, 'store']);                   
             Route::get('/{id}', [AdminProductController::class, 'show']);                 
-            Route::put('/{id}', [AdminProductController::class, 'update']);               
             Route::patch('/{id}', [AdminProductController::class, 'update']);             
             Route::delete('/{id}', [AdminProductController::class, 'destroy']);           
             Route::post('/bulk-delete', [AdminProductController::class, 'bulkDestroy']);  
             Route::delete('/{productId}/images/{imageId}', [AdminProductController::class, 'deleteImage']); 
             Route::post('/export-pdf', [AdminProductController::class, 'exportPdf']);     
-            Route::get('/categories/list', [AdminProductController::class, 'categories']); 
             Route::get('/statistics/summary', [AdminProductController::class, 'statistics']); 
             Route::get('/filtered/search', [AdminProductController::class, 'filtered']);  
         });
