@@ -1,4 +1,3 @@
-
 <?php
 // app/Http/Resources/OrderItemResource.php
 
