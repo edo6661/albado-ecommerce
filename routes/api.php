@@ -92,7 +92,6 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
             Route::get('/', [AdminCategoryController::class, 'index']);                    
             Route::post('/', [AdminCategoryController::class, 'store']);               
             Route::get('/{id}', [AdminCategoryController::class, 'show']);                 
-            Route::put('/{id}', [AdminCategoryController::class, 'update']);               
             Route::patch('/{id}', [AdminCategoryController::class, 'update']);             
             Route::delete('/{id}', [AdminCategoryController::class, 'destroy']);           
             Route::post('/bulk-delete', [AdminCategoryController::class, 'bulkDestroy']);  

@@ -21,8 +21,12 @@ class Category extends Model
     {
         return $this->hasMany(Product::class);
     }
-    public function getImageUrlAttribute() 
+    public function getImageUrlAttribute()
     {
+        if (!$this->image) {
+            return null;
+        }
+
         if (filter_var($this->image, FILTER_VALIDATE_URL)) {
             return $this->image;
         }

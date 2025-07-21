@@ -36,7 +36,6 @@ class CategoryService implements CategoryServiceInterface
                 $path = $image->store('categories', 's3');
                 $data['image'] = $path;
             }
-            
             return $this->categoryRepository->create($data);
         });
     }
