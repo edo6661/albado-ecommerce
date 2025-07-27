@@ -2,7 +2,7 @@
     <x-slot:title>Edit Profil</x-slot:title>
     
     <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-2xl mx-auto">
+        <div class="max-w-7xl mx-auto">
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-extrabold text-gray-900">Edit Profil</h1>
                 <p class="mt-2 text-sm text-gray-600">
