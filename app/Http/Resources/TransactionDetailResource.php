@@ -36,10 +36,10 @@ class TransactionDetailResource extends JsonResource
                 'notes' => $this->order->notes,
                 'created_at' => $this->order->created_at->format('Y-m-d H:i:s'),
             ],
-            'payment_type' => [
-                'value' => $this->payment_type->value,
-                'label' => $this->payment_type->label(),
-            ],
+            // 'payment_type' => [
+            //     'value' => $this->payment_type->value,
+            //     'label' => $this->payment_type->label(),
+            // ],
             'status' => [
                 'value' => $this->status->value,
                 'label' => $this->status->label(),
