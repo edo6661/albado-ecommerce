@@ -42,15 +42,17 @@
                             <div>
                                 <div class="space-y-2">
                                     @foreach($order->items->take(3) as $item)
-                                        <a class="flex items-center space-x-3 my-2" href="{{ route('products.show', $item->product->slug) }}">
-                                            <img src="{{ $item->product->images->first()?->path_url ?? '/default-product.jpg' }}" 
-                                                 class="w-10 h-10 object-cover rounded">
-                                            <div>
-                                                <p class="text-sm font-medium text-gray-900">{{ $item->product_name }}</p>
-                                                <p class="text-xs text-gray-500">{{ $item->quantity }}x</p>
-                                            </div>
+                                        <div class="flex items-center space-x-3 my-2">
+                                            <a href="{{ route('products.show', $item->product->slug) }}" class="flex items-center space-x-3">
+                                                <img src="{{ $item->product->images->first()?->path_url ?? '/default-product.jpg' }}" 
+                                                     class="w-10 h-10 object-cover rounded">
+                                                <div>
+                                                    <p class="text-sm font-medium text-gray-900">{{ $item->product_name }}</p>
+                                                    <p class="text-xs text-gray-500">{{ $item->quantity }}x</p>
+                                                </div>
+                                            </a>
                                             
-                                             @if($order->status->value === 'delivered')
+                                            @if($order->status->value === 'delivered')
                                                 @if(!$item->user_has_rated)
                                                     <a href="{{ route('ratings.create', [
                                                         'product' => $item->product_id
@@ -107,20 +109,22 @@
                                 </a>
                             </div>
                             
-                            @if($order->transaction && $order->transaction->isPending() && $order->transaction->snap_token)
-                                <button @click="resumePayment()" 
-                                        :disabled="loading"
-                                        class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
-                                    <span x-show="!loading">Lanjutkan Pembayaran</span>
-                                    <span x-show="loading">Processing...</span>
-                                </button>
-                            @endif
-                             @if($order->status->value === 'shipped') 
-                                <a href="{{ route('orders.track', $order->id) }}" class="text-blue-600 hover:underline">
-                                    Lacak Pesanan
-                                </a>
-                            @endif
-                             
+                            <div class="flex space-x-2">
+                                @if($order->transaction && $order->transaction->isPending() && $order->transaction->snap_token)
+                                    <button @click="resumePayment()" 
+                                            :disabled="loading"
+                                            class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+                                        <span x-show="!loading">Lanjutkan Pembayaran</span>
+                                        <span x-show="loading">Processing...</span>
+                                    </button>
+                                @endif
+                                
+                                @if($order->status->value === 'shipped') 
+                                    <a href="{{ route('orders.track', $order->id) }}" class="text-blue-600 hover:underline">
+                                        Lacak Pesanan
+                                    </a>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @endforeach
@@ -129,92 +133,89 @@
             <div class="mt-6">
                 {{ $orders->links() }}
             </div>
-            <script>
-                function orderItem(orderId) {
-                    return {
-                        loading: false,
-                        
-                        async resumePayment() {
-                            this.loading = true;
-                            
-                            try {
-                                const response = await fetch(`/orders/${orderId}/resume-payment`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                                    }
-                                });
-
-                                const data = await response.json();
-
-                                if (data.success) {
-                                    // Store reference to 'this' context
-                                    const self = this;
-                                    
-                                    window.snap.pay(data.snap_token, {
-                                        onSuccess: function(result) {
-                                            self.updateTransactionStatus(result, 'settlement');
-                                            window.location.href = '{{ route("payment.finish") }}';
-                                        },
-                                        onPending: function(result) {
-                                            self.updateTransactionStatus(result, 'pending');
-                                            window.location.href = '{{ route("payment.finish") }}';
-                                        },
-                                        onClose: function() {
-                                            window.location.href = '{{ route("payment.finish") }}';
-                                        },
-                                        onError: function(result) {
-                                            console.error('Payment error:', result);
-                                            alert('Terjadi kesalahan saat memproses pembayaran');
-                                        }
-                                    });
-                                } else {
-                                    alert(data.message || 'Terjadi kesalahan');
-                                }
-                            } catch (error) {
-                                console.error('Error:', error);
-                                alert('Terjadi kesalahan saat memproses pembayaran');
-                            } finally {
-                                this.loading = false;
-                            }
-                        },
-                        
-                        async updateTransactionStatus(result, status) {
-                            try {
-                                const response = await fetch('{{ route("payment.callback") }}', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                                    },
-                                    body: JSON.stringify({
-                                        order_id: orderId, // Use the orderId parameter instead of {{ $order->id }}
-                                        transaction_status: status,
-                                        midtrans_result: result
-                                    })
-                                });
-
-                                const data = await response.json();
-
-                                if (data.success) {
-                                    window.location.href = '{{ route("payment.finish") }}';
-                                } else {
-                                    console.error('Failed to update transaction status:', data.message);
-                                    window.location.href = '{{ route("payment.finish") }}';
-                                }
-                            } catch (error) {
-                                console.error('Error updating transaction status:', error);
-                                window.location.href = '{{ route("payment.finish") }}';
-                            }
-                        }
-                    }
-                }
-            </script>
         @endif
     </div>
 
-    
-
     <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
+    
+    <script>
+        function orderItem(orderId) {
+            
+            return {
+                loading: false,
+                
+                async resumePayment() {
+                    this.loading = true;
+                    
+                    try {
+                        const response = await fetch(`/orders/${orderId}/resume-payment`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            const self = this;
+                            
+                            window.snap.pay(data.snap_token, {
+                                onSuccess: function(result) {
+                                    self.updateTransactionStatus(result, 'settlement');
+                                },
+                                onPending: function(result) {
+                                    self.updateTransactionStatus(result, 'pending');
+                                },
+                                onClose: function() {
+                                    window.location.href = '{{ route("payment.finish") }}';
+                                },
+                                onError: function(result) {
+                                    console.error('Payment error:', result);
+                                    alert('Terjadi kesalahan saat memproses pembayaran');
+                                }
+                            });
+                        } else {
+                            alert(data.message || 'Terjadi kesalahan');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Terjadi kesalahan saat memproses pembayaran');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                async updateTransactionStatus(result, status) {
+                    try {
+                        const response = await fetch('{{ route("payment.callback") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            body: JSON.stringify({
+                                order_id: orderId,
+                                transaction_status: status,
+                                midtrans_result: result
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            window.location.href = '{{ route("payment.finish") }}';
+                        } else {
+                            console.error('Failed to update transaction status:', data.message);
+                            window.location.href = '{{ route("payment.finish") }}';
+                        }
+                    } catch (error) {
+                        console.error('Error updating transaction status:', error);
+                        window.location.href = '{{ route("payment.finish") }}';
+                    }
+                }
+            }
+        }
+    </script>
 </x-layouts.plain-app>
