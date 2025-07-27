@@ -1,4 +1,3 @@
-
 <?php
 // app/Http/Resources/TransactionResource.php
 
@@ -21,10 +20,11 @@ class TransactionResource extends JsonResource
                 'user_name' => $this->order->user->name ?? null,
                 'user_email' => $this->order->user->email ?? null,
             ],
-            'payment_type' => [
-                'value' => $this->payment_type->value,
-                'label' => $this->payment_type->label(),
-            ],
+            // nullable payment type nya, jadi nya error entah kenapa, keknya karena enum nya
+            // 'payment_type' => [
+            //     'value' => $this->payment_type->value,
+            //     'label' => $this->payment_type->label(),
+            // ],
             'status' => [
                 'value' => $this->status->value,
                 'label' => $this->status->label(),
