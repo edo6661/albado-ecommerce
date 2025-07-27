@@ -37,7 +37,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="bg-white rounded-lg shadow-lg overflow-hidden">
                 <div class="lg:grid lg:grid-cols-2 lg:gap-x-8">
-                    <div class="lg:max-w-lg lg:self-start">
+                    <div>
                     @if($product->images->count() > 0)
                         <div class="relative aspect-square overflow-hidden rounded-lg" 
                             x-data="productImageGallery()"
