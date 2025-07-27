@@ -24,6 +24,7 @@ class Order extends Model
         'shipping_cost', 
         'shipping_address', 
         'distance_km', 
+        'address_id'
 
     ];
 
@@ -48,6 +49,10 @@ class Order extends Model
     public function transaction(): HasOne
     {
         return $this->hasOne(Transaction::class);
+    }
+    public function address(): BelongsTo
+    {
+        return $this->belongsTo(Address::class, 'address_id');
     }
     public function latestTransaction()
     {

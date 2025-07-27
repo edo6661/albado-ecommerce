@@ -255,7 +255,6 @@
                 <div class="mt-4 mb-4">
                     <label for="shipping_address" class="block text-sm font-medium text-gray-700 mb-2">Pilih Alamat Pengiriman:</label>
                     
-                    <!-- Tampilkan dropdown jika ada alamat -->
                     <div x-show="addresses.length > 0">
                         <select name="shipping_address" id="shipping_address" x-model="selectedAddressId" @change="calculateShippingCost()"
                             class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
@@ -266,7 +265,6 @@
                         </select>
                     </div>
                     
-                    <!-- Tampilkan pesan jika tidak ada alamat -->
                     <div x-show="addresses.length === 0" class="text-center py-4">
                         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                             <i class="fa-solid fa-exclamation-triangle text-yellow-600 text-xl mb-2"></i>
@@ -378,7 +376,6 @@ function headerData() {
                 const data = await response.json();
                 this.addresses = data.addresses || [];
                 
-                // Hanya set alamat default jika ada alamat
                 if (this.addresses.length > 0) {
                     const defaultAddress = this.addresses.find(addr => addr.is_default);
                     if (defaultAddress) {
@@ -493,7 +490,6 @@ function headerData() {
                     }
                 } catch (error) {
                     console.error('Error updating quantity:', error);
-                    //  jika error
                     await this.loadCartSummary();
                 } finally {
                     delete this.loadingItems[itemId];

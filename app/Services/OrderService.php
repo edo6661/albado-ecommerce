@@ -86,6 +86,7 @@ class OrderService implements OrderServiceInterface
                 'total' => $finalTotal, 
                 'shipping_cost' => $shippingCost,
                 'shipping_address' => $shippingAddress,
+                'address_id' => $orderData['address_id'] ?? null,
                 'distance_km' => $distanceKm,
             ]);
 

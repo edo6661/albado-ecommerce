@@ -23,7 +23,7 @@ class OrderTrackingController extends Controller
             'lng' => (float) config('services.shipping.store_lng'),
         ];
         
-        $userAddress = $order->user->defaultAddress;
+        $userAddress = $order->address ?? $order->user->defaultAddress;
         if (!$userAddress) {
             $userAddress = $order->user->addresses()->first();
         }

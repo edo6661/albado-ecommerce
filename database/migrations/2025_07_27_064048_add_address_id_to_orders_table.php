@@ -12,10 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->decimal('shipping_cost', 10, 2)->default(0)->after('total');
-            $table->text('shipping_address')->nullable()->after('shipping_cost');
-            $table->float('distance_km')->nullable()->after('shipping_address');
-            
+            $table->foreignId('address_id')->nullable()->constrained('addresses')->after('distance_km');
         });
     }
 

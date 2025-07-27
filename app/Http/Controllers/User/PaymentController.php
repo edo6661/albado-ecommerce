@@ -56,6 +56,7 @@ class PaymentController extends Controller
                 'shipping_cost' => $shipping['cost'], 
                 'distance_km' => $shipping['distance_km'], 
                 'shipping_address' => $address->getFullAddressAttribute(), 
+                'address_id' => $address->id,
             ];
     
             $items = $cartItems->map(function ($cartItem) {
