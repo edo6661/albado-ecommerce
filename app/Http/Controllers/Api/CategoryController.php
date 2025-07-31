@@ -17,12 +17,6 @@ class CategoryController extends Controller
         protected CategoryServiceInterface $categoryService
     ) {}
 
-    /**
-     * Display a listing of categories with products
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -43,12 +37,6 @@ class CategoryController extends Controller
         }
     }
 
-    /**
-     * Display the specified category
-     *
-     * @param string $slug
-     * @return JsonResponse
-     */
     public function show(string $slug): JsonResponse
     {
         try {

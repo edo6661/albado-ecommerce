@@ -13,11 +13,15 @@ use App\Http\Controllers\Api\OrderTrackingController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Api\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
-use App\Http\Controllers\Api\Admin\TransactionController as AdminTransactionController; 
+use App\Http\Controllers\Api\Admin\TransactionController as AdminTransactionController;
+use App\Http\Controllers\Api\PaymentController;
+
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
 Route::prefix('v1')->group(function () {
+    Route::post('/payment/callback', [PaymentController::class, 'paymentCallback'])->name('api.payment.callback');
     Route::prefix('auth')->group(function () {
         Route::post('/register', [AuthController::class, 'register']);
         Route::post('/login', [AuthController::class, 'login']);
@@ -68,13 +72,21 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [RatingController::class, 'destroy']); 
         Route::post('/check-eligibility', [RatingController::class, 'checkRatingEligibility']); 
     });
+    Route::get('/products/{productId}/my-rating', [RatingController::class, 'userProductRating']);
+
     Route::prefix('orders')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('api.orders.index');
         Route::get('/{order}', [OrderController::class, 'show'])->name('api.orders.show');
         Route::post('/{order}/resume-payment', [OrderController::class, 'resumePayment'])->name('api.orders.resume-payment');
         Route::get('/{orderId}/track', [OrderTrackingController::class, 'show'])->name('api.orders.track');
     });
-    Route::get('/products/{productId}/my-rating', [RatingController::class, 'userProductRating']);
+    Route::prefix('payment')->group(function () {
+        Route::post('/checkout', [PaymentController::class, 'checkout'])->name('api.payment.checkout');
+        Route::get('/orders/{order}/summary', [PaymentController::class, 'checkoutSummary'])->name('api.payment.checkout-summary');
+        Route::get('/status', [PaymentController::class, 'paymentStatus'])->name('api.payment.status');
+        Route::post('/calculate-shipping', [PaymentController::class, 'calculateShipping'])->name('api.payment.calculate-shipping');
+        Route::post('/orders/{order}/resume', [PaymentController::class, 'resumePayment'])->name('api.payment.resume');
+    });
     Route::prefix('admin')->middleware(['api.admin'])->group(function () {
         Route::prefix('products')->group(function () {
             Route::get('/', [AdminProductController::class, 'index']);                    
