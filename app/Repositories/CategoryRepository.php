@@ -1,58 +1,80 @@
 <?php
-
 namespace App\Repositories;
-
 use App\Contracts\Repositories\CategoryRepositoryInterface;
 use App\Models\Category;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
-
 class CategoryRepository implements CategoryRepositoryInterface
 {
     public function __construct(protected Category $model) {}
-
     public function findById(int $id): ?Category
     {
         return $this->model->with(['products'])->find($id);
     }
-
-    public function getAllPaginated(int $perPage = 15): LengthAwarePaginator
+    public function getAllPaginated(int $perPage = 15, int $page = 1): LengthAwarePaginator
     {
-        return $this->model->with(['products'])->orderBy('created_at', 'desc')->paginate($perPage);
+        return $this->model->with(['products'])
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page);
+    }
+    public function getAllCursorPaginated(int $perPage = 15, ?int $cursor = null): Collection
+    {
+        $query = $this->model->with(['products'])
+            ->orderBy('id', 'desc');
+        if ($cursor) {
+            $query->where('id', '<', $cursor);
+        }
+        return $query->limit($perPage + 1)->get(); 
+    }
+    public function getFilteredPaginated(array $filters = [], int $perPage = 15, ?int $cursor = null): Collection
+    {
+        $query = $this->model->with(['products'])
+            ->orderBy('id', 'desc');
+        if (!empty($filters['search'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('name', 'like', '%' . $filters['search'] . '%')
+                ->orWhere('slug', 'like', '%' . $filters['search'] . '%');
+            });
+        }
+        if (!empty($filters['has_products'])) {
+            if ($filters['has_products']) {
+                $query->has('products');
+            } else {
+                $query->doesntHave('products');
+            }
+        }
+        if ($cursor) {
+            $query->where('id', '<', $cursor);
+        }
+        return $query->limit($perPage + 1)->get();
     }
     public function getCategoryBySlug(string $slug): ?Category
     {
         return $this->model->with(['products'])->where('slug', $slug)->first();
     }
-
     public function create(array $data): Category
     {
         return $this->model->create($data);
     }
-
     public function update(Category $category, array $data): bool
     {
         return $category->update($data);
     }
-
     public function delete(Category $category): bool
     {
         return $category->delete();
     }
-
     public function getCategoryStatistics(): array
     {
         $totalCategories = $this->model->count();
         $categoriesWithProducts = $this->model->has('products')->count();
         $categoriesWithoutProducts = $this->model->doesntHave('products')->count();
-        
         return [
             'total_categories' => $totalCategories,
             'categories_with_products' => $categoriesWithProducts,
             'categories_without_products' => $categoriesWithoutProducts,
         ];
     }
-
     public function getRecentCategories(int $limit = 10): Collection
     {
         return $this->model->with(['products'])
@@ -64,7 +86,8 @@ class CategoryRepository implements CategoryRepositoryInterface
     {
         return $this->model->with(['products'])
             ->whereHas('products')
-            ->orderBy('')
+            ->withCount('products')
+            ->orderBy('products_count', 'desc')
             ->limit($limit)
             ->get();
     }
@@ -72,14 +95,12 @@ class CategoryRepository implements CategoryRepositoryInterface
     {
         $query = $this->model->with(['products'])
             ->orderBy('created_at', 'desc');
-
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('name', 'like', '%' . $filters['search'] . '%')
                   ->orWhere('slug', 'like', '%' . $filters['search'] . '%');
             });
         }
-
         return $query->get();
     }
 }

@@ -30,10 +30,10 @@ Route::prefix('v1')->group(function () {
         Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmailFromLink'])->name('api.verification.verify');
         // Route::post('/refresh', [AuthController::class, 'refresh']); 
     });
-    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/categories', [CategoryController::class, 'index']); 
+    Route::get('/categories/paginated', [CategoryController::class, 'indexPaginated']); 
+    Route::get('/categories/featured', [CategoryController::class, 'featured']); 
     Route::get('/categories/{slug}', [CategoryController::class, 'show']);
-    Route::get('/products', [ProductController::class, 'index']);
-    Route::get('/products/{slug}', [ProductController::class, 'show']);
     Route::get('/products/{id}/related', [ProductController::class, 'related']);
     Route::get('/products/{productId}/ratings', [RatingController::class, 'productRatings']);
 });

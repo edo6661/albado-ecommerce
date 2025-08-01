@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
@@ -14,7 +13,11 @@ class CategoryResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'image_url' => $this->image_url,
-            'products_count' => $this->products->count(),
+            'products_count' => $this->when(
+                $this->relationLoaded('products'), 
+                fn() => $this->products->count(),
+                fn() => $this->products_count ?? 0
+            ),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }
