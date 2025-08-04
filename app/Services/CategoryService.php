@@ -154,4 +154,24 @@ class CategoryService implements CategoryServiceInterface
             'filters' => $filters            
         ];
     }
+     public function getCategoryDetailWithPaginatedProducts(string $slug, int $perPage = 15, ?int $cursor = null): ?Category
+    {
+        $category = $this->categoryRepository->findBySlug($slug);
+        if (!$category) {
+            return null;
+        }
+        $products = $this->categoryRepository->getPaginatedProductsForCategory($category, $perPage, $cursor);
+        $hasNextPage = $products->count() > $perPage;
+        if ($hasNextPage) {
+            $products->pop();
+        }
+        $nextCursor = $hasNextPage && $products->isNotEmpty() ? $products->last()->id : null;
+        $category->paginated_products = [
+            'data' => $products,
+            'has_next_page' => $hasNextPage,
+            'next_cursor' => $nextCursor,
+            'per_page' => $perPage
+        ];
+        return $category;
+    }
 }

@@ -103,4 +103,18 @@ class CategoryRepository implements CategoryRepositoryInterface
         }
         return $query->get();
     }
+    public function getPaginatedProductsForCategory(Category $category, int $perPage, ?int $cursor): Collection
+    {
+        $query = $category->products()
+                          ->with(['images']) 
+                          ->orderBy('id', 'desc'); 
+        if ($cursor) {
+            $query->where('id', '<', $cursor);
+        }
+        return $query->limit($perPage + 1)->get();
+    }
+    public function findBySlug(string $slug): ?Category 
+    {
+        return $this->model->where('slug', $slug)->first();
+    }
 }

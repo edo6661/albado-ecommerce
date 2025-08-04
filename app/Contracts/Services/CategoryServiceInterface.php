@@ -19,4 +19,6 @@ interface CategoryServiceInterface
     public function getFilteredCategories(array $filters = []): Collection; 
     public function getCategoryHasManyProducts(int $limit = 10): Collection;
     public function getCategoryBySlug(string $slug): ?Category;
+    public function getCategoryDetailWithPaginatedProducts(string $slug, int $perPage = 15, ?int $cursor = null): ?Category;
+
 }

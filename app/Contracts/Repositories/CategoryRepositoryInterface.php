@@ -16,7 +16,11 @@ interface CategoryRepositoryInterface
     public function delete(Category $category): bool;
     public function getCategoryStatistics(): array;
     public function getRecentCategories(int $limit = 10): Collection;
-    public function getFilteredCategories(array $filters = []): Collection; // Deprecated
+    public function getFilteredCategories(array $filters = []): Collection; 
     public function getCategoryHasManyProducts(int $limit = 10): Collection;
     public function getCategoryBySlug(string $slug): ?Category;
+    public function getPaginatedProductsForCategory(Category $category, int $perPage, ?int $cursor): Collection;
+    public function findBySlug(string $slug): ?Category; 
+
+
 }
