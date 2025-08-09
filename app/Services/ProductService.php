@@ -15,6 +15,7 @@ class ProductService implements ProductServiceInterface
 {
     public function __construct(protected ProductRepositoryInterface $productRepository) {}
 
+    
     public function getPaginatedProducts(int $perPage = 15): LengthAwarePaginator
     {
         return $this->productRepository->getAllPaginated($perPage);
@@ -29,13 +30,33 @@ class ProductService implements ProductServiceInterface
         return $product;
     }
 
+    
+    public function getFilteredPaginatedProductsWithCursor(array $filters = [], int $perPage = 15, ?int $cursor = null): array
+    {
+        $products = $this->productRepository->getFilteredPaginated($filters, $perPage, $cursor);
+        $hasNextPage = $products->count() > $perPage;
+
+        if ($hasNextPage) {
+            $products->pop(); 
+        }
+
+        $nextCursor = $hasNextPage && $products->isNotEmpty() ? $products->last()->id : null;
+
+        return [
+            'data' => $products,
+            'has_next_page' => $hasNextPage,
+            'next_cursor' => $nextCursor,
+            'per_page' => $perPage,
+            'filters' => $filters
+        ];
+    }
+
+    
     public function createProduct(array $data, array $images = []): Product
     {
         return DB::transaction(function () use ($data, $images) {
-            
             $product = $this->productRepository->create($data);
 
-            
             if (!empty($images)) {
                 $imageData = [];
                 foreach ($images as $index => $imageFile) {
@@ -63,9 +84,7 @@ class ProductService implements ProductServiceInterface
             
             $this->productRepository->update($product, $data);
             
-            
             if (!empty($images)) {
-                
                 foreach ($product->images as $oldImage) {
                     Storage::disk('s3')->delete($oldImage->path); 
                     $oldImage->delete();
@@ -94,7 +113,6 @@ class ProductService implements ProductServiceInterface
         return DB::transaction(function () use ($id) {
             $product = $this->getProductById($id);
 
-            
             foreach ($product->images as $image) {
                 if (Storage::disk('s3')->exists($image->path)) {
                     Storage::disk('s3')->delete($image->path);
@@ -105,7 +123,6 @@ class ProductService implements ProductServiceInterface
         });
     }
 
-    
     public function deleteMultipleProducts(array $ids): int
     {
         return DB::transaction(function () use ($ids) {
@@ -114,7 +131,6 @@ class ProductService implements ProductServiceInterface
             foreach ($ids as $id) {
                 try {
                     $product = $this->getProductById($id);
-                    
                     
                     foreach ($product->images as $image) {
                         if (Storage::disk('s3')->exists($image->path)) {
@@ -126,7 +142,6 @@ class ProductService implements ProductServiceInterface
                         $deletedCount++;
                     }
                 } catch (ProductNotFoundException $e) {
-                    
                     continue;
                 }
             }
@@ -134,6 +149,7 @@ class ProductService implements ProductServiceInterface
             return $deletedCount;
         });
     }
+
     public function deleteProductImage(int $productId, int $imageId): bool
     {
         return DB::transaction(function () use ($productId, $imageId) {
@@ -151,6 +167,7 @@ class ProductService implements ProductServiceInterface
             return $image->delete();
         });
     }
+
     public function getProductStatistics(): array
     {
         return $this->productRepository->getProductStatistics();
@@ -160,22 +177,28 @@ class ProductService implements ProductServiceInterface
     {
         return $this->productRepository->getRecentProducts($limit);
     }
+
     public function getFilteredProducts(array $filters = []): Collection
     {
         return $this->productRepository->getFilteredProducts($filters);
     }
+
     public function getPaginatedActiveProducts(int $perPage = 12, int $page = 1): LengthAwarePaginator
     {
         return $this->productRepository->getPaginatedActiveProducts($perPage, $page);
     }
+
+    
     public function getFilteredPaginatedProducts(array $filters, int $perPage = 12, int $page = 1): LengthAwarePaginator
     {
         return $this->productRepository->getFilteredPaginatedProducts($filters, $perPage, $page);
     }
+
     public function getProductBySlug(string $slug): ?Product
     {
         return $this->productRepository->getProductBySlug($slug);
     }
+
     public function getRelatedProducts(int $productId, int $categoryId, int $limit = 4): Collection
     {
         return $this->productRepository->getRelatedProducts($productId, $categoryId, $limit);

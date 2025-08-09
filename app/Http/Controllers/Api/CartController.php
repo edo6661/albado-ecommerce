@@ -14,11 +14,7 @@ class CartController extends Controller
     public function __construct(
         protected CartServiceInterface $cartService
     ) {}
-    /**
-     * Display cart contents
-     *
-     * @return JsonResponse
-     */
+  
     public function index(): JsonResponse
     {
         try {
@@ -36,12 +32,6 @@ class CartController extends Controller
             ], 500);
         }
     }
-    /**
-     * Add product to cart
-     *
-     * @param AddToCartRequest $request
-     * @return JsonResponse
-     */
     public function store(AddToCartRequest $request): JsonResponse
     {
         try {
@@ -66,13 +56,7 @@ class CartController extends Controller
             ], 400);
         }
     }
-    /**
-     * Update cart item quantity
-     *
-     * @param UpdateCartItemRequest $request
-     * @param int $productId
-     * @return JsonResponse
-     */
+ 
     public function update(UpdateCartItemRequest $request, int $productId): JsonResponse
     {
         try {
@@ -94,12 +78,7 @@ class CartController extends Controller
             ], 400);
         }
     }
-    /**
-     * Remove product from cart
-     *
-     * @param int $productId
-     * @return JsonResponse
-     */
+
     public function destroy(int $productId): JsonResponse
     {
         try {
@@ -117,11 +96,7 @@ class CartController extends Controller
             ], 400);
         }
     }
-    /**
-     * Clear all cart items
-     *
-     * @return JsonResponse
-     */
+ 
     public function clear(): JsonResponse
     {
         try {

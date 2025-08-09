@@ -32,6 +32,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/categories', [CategoryController::class, 'index']); 
     Route::get('/categories/featured', [CategoryController::class, 'featured']); 
     Route::get('/categories/{slug}', [CategoryController::class, 'show']);
+    Route::get('/products', [ProductController::class, 'index']); 
+    Route::get('/products/featured', [ProductController::class, 'featured']); 
+    Route::get('/products/{slug}', [ProductController::class, 'show']);
     Route::get('/products/{id}/related', [ProductController::class, 'related']);
     Route::get('/products/{productId}/ratings', [RatingController::class, 'productRatings']);
 });
