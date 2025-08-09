@@ -88,7 +88,7 @@ class CategoryController extends Controller
             $validated = $request->getValidatedData();
             $perPage = $validated['per_page'] ?? 15;
             $cursor = $validated['cursor'] ?? null;
-            $result =             $category = $this->categoryService->getCategoryDetailWithPaginatedProducts($slug, $perPage, $cursor);
+            $category = $this->categoryService->getCategoryDetailWithPaginatedProducts($slug, $perPage, $cursor);
             if (!$category) { 
                 return response()->json([
                     'success' => false,
