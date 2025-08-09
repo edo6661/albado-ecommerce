@@ -17,4 +17,5 @@ interface CartRepositoryInterface
     public function clearCart(Cart $cart): bool;
     public function getCartItems(Cart $cart): Collection;
     public function getCartItemsByIds(int $userId, array $itemIds): Collection;
+    public function getPaginatedCartItems(int $userId, int $perPage = 15, ?int $cursor = null): Collection;
 }

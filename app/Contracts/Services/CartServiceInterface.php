@@ -15,4 +15,5 @@ interface CartServiceInterface
     public function clearCart(int $userId): bool;
     public function getCartSummary(int $userId): array;
     public function getCartItemsByIds(int $userId, array $itemIds): Collection;
+    public function getPaginatedCartItems(int $userId, int $perPage = 15, ?int $cursor = null): array;
 }

@@ -1,37 +1,81 @@
 <?php
 // app/Http/Controllers/Api/CartController.php
 namespace App\Http\Controllers\Api;
+
 use App\Http\Controllers\Controller;
 use App\Contracts\Services\CartServiceInterface;
 use App\Http\Resources\CartResource;
 use App\Http\Resources\CartSummaryResource;
 use App\Http\Requests\Api\AddToCartRequest;
+use App\Http\Requests\Api\Cart\CartIndexRequest;
 use App\Http\Requests\Api\UpdateCartItemRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+
 class CartController extends Controller
 {
     public function __construct(
         protected CartServiceInterface $cartService
     ) {}
   
-    public function index(): JsonResponse
+    public function index(CartIndexRequest $request): JsonResponse
+    {
+        try {
+            $validated = $request->getValidatedData();
+            $perPage = $validated['per_page'] ?? 15;
+            $cursor = $validated['cursor'] ?? null;
+            
+            $result = $this->cartService->getPaginatedCartItems(Auth::id(), $perPage, $cursor);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Keranjang berhasil diambil',
+                'data' => CartResource::collection($result['data']),
+                'pagination' => [
+                    'has_next_page' => (bool) $result['has_next_page'],
+                    'next_cursor' => $result['next_cursor'] ? (int) $result['next_cursor'] : null,
+                    'per_page' => (int) $result['per_page'],
+                    'current_cursor' => $cursor ? (int) $cursor : null
+                ],
+                'summary' => [
+                    'total_items' => $result['summary']['total_items'],
+                    'total_quantity' => $result['summary']['total_quantity'],
+                    'total_price' => $result['summary']['total_price']
+                ]
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data keranjang',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+            ], 500);
+        }
+    }
+
+    public function summary(): JsonResponse
     {
         try {
             $cartSummary = $this->cartService->getCartSummary(Auth::id());
             return response()->json([
                 'success' => true,
-                'message' => 'Keranjang berhasil diambil',
+                'message' => 'Ringkasan keranjang berhasil diambil',
                 'data' => new CartSummaryResource($cartSummary)
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengambil data keranjang',
-                'error' => $e->getMessage()
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
             ], 500);
         }
     }
+    
     public function store(AddToCartRequest $request): JsonResponse
     {
         try {
@@ -115,7 +159,7 @@ class CartController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengosongkan keranjang',
-                'error' => $e->getMessage()
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
             ], 500);
         }
     }

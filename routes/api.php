@@ -46,7 +46,8 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
         Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
     });
     Route::prefix('cart')->group(function () {
-        Route::get('/', [CartController::class, 'index']);
+        Route::get('/', [CartController::class, 'index']); 
+        Route::get('/summary', [CartController::class, 'summary']); 
         Route::post('/items', [CartController::class, 'store']);
         Route::patch('/items/{productId}', [CartController::class, 'update']);
         Route::delete('/items/{productId}', [CartController::class, 'destroy']);
