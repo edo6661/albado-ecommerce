@@ -48,4 +48,8 @@ class AddressRepository implements AddressRepositoryInterface
 
         return $address->update(['is_default' => true]);
     }
+    public function unsetAsDefault(Address $address): bool
+    {
+        return $address->update(['is_default' => false]);
+    }
 }
