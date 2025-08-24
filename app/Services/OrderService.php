@@ -210,5 +210,23 @@ class OrderService implements OrderServiceInterface
     {
         return $this->orderRepository->getUserOrdersPaginated($userId, $perPage);
     }
-    
+    public function getUserOrdersCursorPaginated(int $userId, int $perPage = 15, ?int $cursor = null): array
+    {
+        $orders = $this->orderRepository->getUserOrdersCursorPaginated($userId, $perPage, $cursor);
+
+        $hasNextPage = $orders->count() > $perPage;
+
+        if ($hasNextPage) {
+            $orders->pop(); 
+        }
+
+        $nextCursor = $hasNextPage && $orders->isNotEmpty() ? $orders->last()->id : null;
+
+        return [
+            'data' => $orders,
+            'has_next_page' => $hasNextPage,
+            'next_cursor' => $nextCursor,
+            'per_page' => $perPage,
+        ];
+    }
 }

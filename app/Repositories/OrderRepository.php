@@ -153,4 +153,16 @@ class OrderRepository implements OrderRepositoryInterface
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
     }
+    public function getUserOrdersCursorPaginated(int $userId, int $perPage = 15, ?int $cursor = null): Collection
+    {
+        $query = $this->model->where('user_id', $userId)
+            ->with(['items.product.images', 'transaction'])
+            ->orderBy('id', 'desc'); 
+
+        if ($cursor) {
+            $query->where('id', '<', $cursor);
+        }
+
+        return $query->limit($perPage + 1)->get(); 
+    }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Contracts\Services\OrderServiceInterface;
 use App\Contracts\Services\RatingServiceInterface;
 use App\Contracts\Services\TransactionServiceInterface;
+use App\Http\Requests\Api\OrderIndexRequest;
 use App\Http\Resources\OrderResource;
 use App\Http\Resources\OrderDetailResource;
 use App\Http\Requests\Api\ResumePaymentRequest;
@@ -26,13 +27,16 @@ class OrderController extends Controller
      *
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+    public function index(OrderIndexRequest $request): JsonResponse
     {
         try {
-            $orders = $this->orderService->getUserOrdersPaginated(Auth::id());
+            $validated = $request->getValidatedData();
+            $perPage = $validated['per_page'] ?? 15;
+            $cursor = $validated['cursor'] ?? null;
+
+            $result = $this->orderService->getUserOrdersCursorPaginated(Auth::id(), $perPage, $cursor);
             
-            // Add rating information for each order item
-            foreach ($orders as $order) {
+            foreach ($result['data'] as $order) {
                 foreach ($order->items as $item) {
                     $userRating = $this->ratingService->getUserRatingForProduct(
                         Auth::id(), 
@@ -47,21 +51,20 @@ class OrderController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Daftar pesanan berhasil diambil',
-                'data' => [
-                    'orders' => OrderResource::collection($orders->items()),
-                    'pagination' => [
-                        'current_page' => $orders->currentPage(),
-                        'per_page' => $orders->perPage(),
-                        'total' => $orders->total(),
-                        'last_page' => $orders->lastPage(),
-                        'from' => $orders->firstItem(),
-                        'to' => $orders->lastItem(),
-                        'has_more_pages' => $orders->hasMorePages(),
-                        'prev_page_url' => $orders->previousPageUrl(),
-                        'next_page_url' => $orders->nextPageUrl()
-                    ]
+                'data' => OrderResource::collection($result['data']),
+                'pagination' => [
+                    'has_next_page' => (bool) $result['has_next_page'],
+                    'next_cursor' => $result['next_cursor'] ? (int) $result['next_cursor'] : null,
+                    'per_page' => (int) $result['per_page'],
+                    'current_cursor' => $cursor ? (int) $cursor : null,
                 ]
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

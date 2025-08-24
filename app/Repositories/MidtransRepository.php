@@ -58,7 +58,7 @@ class MidtransRepository implements MidtransRepositoryInterface
             return [
                 'success' => true,
                 'snap_token' => $snapToken,
-                'redirect_url' => "https://app.sandbox.midtrans.com/snap/v1/transactions/{$snapToken}/pay"
+                'redirect_url' => "https://app.sandbox.midtrans.com/snap/v2/vtweb/{$snapToken}"
             ];
 
         } catch (\Exception $e) {
