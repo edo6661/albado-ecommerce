@@ -36,4 +36,5 @@ interface OrderServiceInterface
     public function getFilteredOrders(array $filters = []): Collection;
     public function getUserOrdersPaginated(int $userId, int $perPage = 15): LengthAwarePaginator;   
     public function getUserOrdersCursorPaginated(int $userId, int $perPage = 15, ?int $cursor = null): array;
+    public function getFilteredCursorPaginatedOrders(array $filters = [], int $perPage = 15, ?int $cursor = null): array;
 }

@@ -13,6 +13,7 @@ use App\Exceptions\OrderCannotBeCancelledException;
 use App\Http\Resources\OrderResource;
 use App\Http\Resources\OrderDetailResource;
 use App\Enums\OrderStatus;
+use App\Http\Requests\Api\Admin\Order\OrderIndexRequest;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -31,21 +32,17 @@ class OrderController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function index(Request $request): JsonResponse
+    public function index(OrderIndexRequest $request): JsonResponse
     {
         try {
-            $perPage = $request->get('per_page', 15);
+            $validated = $request->validated();
             
-            $filters = [
-                'status' => $request->get('status'),
-                'date_from' => $request->get('date_from'),
-                'date_to' => $request->get('date_to'),
-                'user_id' => $request->get('user_id'),
-                'search' => $request->get('search'),
-            ];
+            $perPage = $validated['per_page'] ?? 15;
+            $cursor = $validated['cursor'] ?? null;
+            $filters = $validated;
 
-            $orders = $this->orderService->getPaginatedOrders($perPage, array_filter($filters));
-            
+            $result = $this->orderService->getFilteredCursorPaginatedOrders($filters, $perPage, $cursor);
+
             $statusOptions = collect(OrderStatus::cases())->mapWithKeys(function ($status) {
                 return [$status->value => $status->label()];
             })->all();
@@ -61,24 +58,33 @@ class OrderController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Data pesanan berhasil diambil',
-                'data' => OrderResource::collection($orders->items()),
-                'meta' => [
-                    'current_page' => $orders->currentPage(),
-                    'per_page' => $orders->perPage(),
-                    'total' => $orders->total(),
-                    'last_page' => $orders->lastPage(),
-                    'from' => $orders->firstItem(),
-                    'to' => $orders->lastItem(),
-                    'status_options' => $statusOptions,
-                    'user_options' => $userOptions,
-                    'applied_filters' => array_filter($filters)
+                'data' => OrderResource::collection($result['data']),
+                'pagination' => [
+                    'has_next_page' => (bool) $result['has_next_page'],
+                    'next_cursor' => $result['next_cursor'] ? (int) $result['next_cursor'] : null,
+                    'per_page' => (int) $result['per_page'],
+                    'current_cursor' => $cursor ? (int) $cursor : null,
+                ],
+                'filters' => [
+                    'options' => [
+                        'status' => $statusOptions,
+                        'users' => $userOptions,
+                    ],
+                    'applied' => $result['filters'] ?? []
                 ]
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
+            Log::error('Admin Order Index Error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengambil data pesanan',
-                'error' => $e->getMessage()
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
             ], 500);
         }
     }

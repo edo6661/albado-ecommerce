@@ -12,6 +12,7 @@ use App\Exceptions\OrderNotFoundException;
 use App\Exceptions\OrderCannotBeCancelledException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -227,6 +228,28 @@ class OrderService implements OrderServiceInterface
             'has_next_page' => $hasNextPage,
             'next_cursor' => $nextCursor,
             'per_page' => $perPage,
+        ];
+    }
+    public function getFilteredCursorPaginatedOrders(array $filters = [], int $perPage = 15, ?int $cursor = null): array
+    {
+        $cleanFilters = Arr::except($filters, ['per_page', 'cursor']);
+
+        $orders = $this->orderRepository->getFilteredCursorPaginated($cleanFilters, $perPage, $cursor);
+
+        $hasNextPage = $orders->count() > $perPage;
+
+        if ($hasNextPage) {
+            $orders->pop(); // Hapus item ekstra
+        }
+
+        $nextCursor = $hasNextPage && $orders->isNotEmpty() ? $orders->last()->id : null;
+
+        return [
+            'data' => $orders,
+            'has_next_page' => $hasNextPage,
+            'next_cursor' => $nextCursor,
+            'per_page' => $perPage,
+            'filters' => $cleanFilters,
         ];
     }
 }
