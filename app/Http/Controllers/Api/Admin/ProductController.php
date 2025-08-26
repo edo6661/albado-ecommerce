@@ -10,6 +10,7 @@ use App\Http\Requests\Api\Admin\Product\UpdateProductRequest;
 use App\Http\Requests\Api\Admin\Product\BulkDeleteRequest;
 use App\Http\Requests\Api\Admin\Product\ExportPdfRequest;
 use App\Exceptions\ProductNotFoundException;
+use App\Http\Requests\Api\Admin\Product\ProductIndexRequest;
 use App\Http\Resources\ProductDetailResource;
 use App\Http\Resources\ProductResource;
 use App\Models\Category;
@@ -29,38 +30,65 @@ class ProductController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function index(Request $request): JsonResponse
+    public function index(ProductIndexRequest $request): JsonResponse
     {
         try {
-            $perPage = $request->get('per_page', 15);
-            $products = $this->productService->getPaginatedProducts($perPage);
+            $validated = $request->validated();
             
-            $categoryOptions = $products->pluck('category.name')
-                                ->unique()
-                                ->mapWithKeys(function ($name) {
-                                    return [$name => $name];
-                                })
-                                ->all();
+            $perPage = $validated['per_page'] ?? 15;
+            $cursor = $validated['cursor'] ?? null;
+            
+            $filters = [];
+            if (isset($validated['search'])) {
+                $filters['search'] = $validated['search'];
+            }
+            if (isset($validated['category_id'])) {
+                $filters['category_id'] = (int) $validated['category_id'];
+            }
+            if (isset($validated['min_price'])) {
+                $filters['min_price'] = (float) $validated['min_price'];
+            }
+            if (isset($validated['max_price'])) {
+                $filters['max_price'] = (float) $validated['max_price'];
+            }
+            if (isset($validated['sort_by'])) {
+                $filters['sort_by'] = $validated['sort_by'];
+            }
+            // Konversi nilai string 'true'/'false' menjadi boolean
+            if (isset($validated['is_active'])) {
+                $filters['is_active'] = in_array($validated['is_active'], ['true', '1'], true);
+            }
+             if (isset($validated['in_stock'])) {
+                $filters['in_stock'] = in_array($validated['in_stock'], ['true', '1'], true);
+            }
+
+            // Panggil service method yang sudah ada untuk cursor pagination
+            $result = $this->productService->getFilteredPaginatedProductsWithCursor($filters, $perPage, $cursor);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Data produk berhasil diambil',
-                'data' => ProductResource::collection($products->items()),
-                'meta' => [
-                    'current_page' => $products->currentPage(),
-                    'per_page' => $products->perPage(),
-                    'total' => $products->total(),
-                    'last_page' => $products->lastPage(),
-                    'from' => $products->firstItem(),
-                    'to' => $products->lastItem(),
-                    'category_options' => $categoryOptions
-                ]
+                'data' => ProductResource::collection($result['data']),
+                'pagination' => [
+                    'has_next_page' => (bool) $result['has_next_page'],
+                    'next_cursor' => $result['next_cursor'] ? (int) $result['next_cursor'] : null,
+                    'per_page' => (int) $result['per_page'],
+                    'current_cursor' => $cursor ? (int) $cursor : null,
+                ],
+                'filters' => $result['filters'] ?? []
             ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengambil data produk',
-                'error' => $e->getMessage()
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
             ], 500);
         }
     }
