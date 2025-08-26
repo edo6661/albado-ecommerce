@@ -8,11 +8,12 @@ use App\Http\Requests\Api\Admin\Category\StoreCategoryRequest;
 use App\Http\Requests\Api\Admin\Category\UpdateCategoryRequest;
 use App\Http\Requests\Api\Admin\Category\BulkDeleteRequest;
 use App\Exceptions\CategoryNotFoundException;
+use App\Http\Requests\Api\Admin\Category\IndexRequest;
 use App\Http\Resources\CategoryDetailResource;
 use App\Http\Resources\CategoryResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-
+use Illuminate\Validation\ValidationException;
 class CategoryController extends Controller
 {
     public function __construct(protected CategoryServiceInterface $categoryService)
@@ -25,30 +26,45 @@ class CategoryController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function index(Request $request): JsonResponse
+    public function index(IndexRequest $request): JsonResponse
     {
         try {
-            $perPage = $request->get('per_page', 15);
-            $categories = $this->categoryService->getPaginatedCategories($perPage);
+            
+            $validated = $request->getValidatedData();
+            $perPage = $validated['per_page'] ?? 15;
+            $cursor = $validated['cursor'] ?? null;
+            
+            
+            $filters = $request->getFilters();
+
+            
+            $result = $this->categoryService->getFilteredPaginatedCategories($filters, $perPage, $cursor);
+
             
             return response()->json([
                 'success' => true,
                 'message' => 'Data kategori berhasil diambil',
-                'data' => CategoryResource::collection($categories->items()),
-                'meta' => [
-                    'current_page' => $categories->currentPage(),
-                    'per_page' => $categories->perPage(),
-                    'total' => $categories->total(),
-                    'last_page' => $categories->lastPage(),
-                    'from' => $categories->firstItem(),
-                    'to' => $categories->lastItem(),
-                ]
+                'data' => CategoryResource::collection($result['data']),
+                'pagination' => [
+                    'has_next_page' => (bool) $result['has_next_page'],
+                    'next_cursor' => $result['next_cursor'] ? (int) $result['next_cursor'] : null,
+                    'per_page' => (int) $result['per_page'],
+                    'current_cursor' => $cursor ? (int) $cursor : null,
+                ],
+                'filters' => $result['filters'] ?? [],
             ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengambil data kategori',
-                'error' => $e->getMessage()
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
             ], 500);
         }
     }
