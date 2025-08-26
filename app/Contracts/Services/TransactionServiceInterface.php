@@ -33,4 +33,5 @@ interface TransactionServiceInterface
     public function getTransactionsByDateRange(string $startDate, string $endDate): Collection;
     public function getFilteredTransactions(array $filters = []): Collection;
     public function resumePayment(int $transactionId): array;
+    public function getFilteredCursorPaginatedTransactions(array $filters = [], int $perPage = 15, ?int $cursor = null): array;
 }

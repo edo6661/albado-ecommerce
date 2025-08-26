@@ -37,4 +37,5 @@ interface TransactionRepositoryInterface
     public function getMonthlyRevenue(): array;
     public function getFilteredTransactions(array $filters = []): Collection;
     public function findByOrderIdMidtrans(string $orderId): ?Transaction;
+    public function getFilteredCursorPaginated(array $filters = [], int $perPage = 15, ?int $cursor = null): Collection;
 }
