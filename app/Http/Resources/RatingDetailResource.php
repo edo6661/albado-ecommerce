@@ -29,7 +29,6 @@ class RatingDetailResource extends JsonResource
             ],
             'images' => RatingImageResource::collection($this->whenLoaded('images')),
             'images_count' => $this->images ? $this->images->count() : 0,
-            'can_edit' => $request->user() && $request->user()->id === $this->user_id,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
         ];

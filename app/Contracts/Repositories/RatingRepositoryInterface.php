@@ -16,4 +16,5 @@ interface RatingRepositoryInterface
     public function update(Rating $rating, array $data): bool;
     public function delete(Rating $rating): bool;
     public function getProductRatingStats(int $productId): array;
+    public function getUserRatingsCursorPaginated(int $userId, int $perPage = 10, ?int $cursor = null): Collection;
 }
