@@ -54,8 +54,8 @@ class ProductRepository implements ProductRepositoryInterface
         } else {
             $query->where('is_active', true);
         }
-        if (!empty($filters['in_stock'])) {
-            if ($filters['in_stock']) {
+        if (isset($filters['in_stock'])) {
+            if ($filters['in_stock'] === true) {
                 $query->where('stock', '>', 0);
             } else {
                 $query->where('stock', '=', 0);
@@ -183,7 +183,7 @@ class ProductRepository implements ProductRepositoryInterface
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('name', 'like', '%' . $filters['search'] . '%')
-                  ->orWhere('description', 'like', '%' . $filters['search'] . '%');
+                ->orWhere('description', 'like', '%' . $filters['search'] . '%');
             });
         }
         if (!empty($filters['category_id'])) {
@@ -194,6 +194,16 @@ class ProductRepository implements ProductRepositoryInterface
         }
         if (isset($filters['max_price']) && is_numeric($filters['max_price'])) {
             $query->where('price', '<=', $filters['max_price']);
+        }
+        if (isset($filters['is_active'])) {
+            $query->where('is_active', $filters['is_active']);
+        }
+        if (isset($filters['in_stock'])) {
+            if ($filters['in_stock'] === true) {
+                $query->where('stock', '>', 0);
+            } else {
+                $query->where('stock', '=', 0);
+            }
         }
         $query->reorder();
         $sortBy = $filters['sort_by'] ?? 'latest';

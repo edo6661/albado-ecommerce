@@ -13,7 +13,7 @@ class OrderIndexRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Asumsikan admin yang mengakses sudah diautentikasi
+        return true; 
     }
 
     /**
