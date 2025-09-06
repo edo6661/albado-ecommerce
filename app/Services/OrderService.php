@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Services;
-
 use App\Contracts\Services\OrderServiceInterface;
 use App\Contracts\Repositories\OrderRepositoryInterface;
 use App\Models\Order;
@@ -15,70 +13,52 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
 class OrderService implements OrderServiceInterface
 {
     public function __construct(
         protected OrderRepositoryInterface $orderRepository
     ) {}
-
     public function getOrderById(int $id): Order
     {
         $order = $this->orderRepository->findById($id);
-        
         if (!$order) {
             throw new OrderNotFoundException("Order dengan ID {$id} tidak ditemukan.");
         }
-        
         return $order;
     }
-
     public function getOrderByNumber(string $orderNumber): Order
     {
         $order = $this->orderRepository->findByOrderNumber($orderNumber);
-        
         if (!$order) {
             throw new OrderNotFoundException("Order dengan nomor {$orderNumber} tidak ditemukan.");
         }
-        
         return $order;
     }
-
     public function getPaginatedOrders(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         return $this->orderRepository->getAllPaginated($perPage, $filters);
     }
-
     public function getUserOrders(int $userId): Collection
     {
         return $this->orderRepository->getByUserId($userId);
     }
-
     public function getOrdersByStatus(string $status): Collection
     {
         return $this->orderRepository->getByStatus($status);
     }
-
     public function createOrder(array $orderData, array $items): Order
     {
         try {
             DB::beginTransaction();
-
             if (empty($items)) {
                 throw new \InvalidArgumentException('Order harus memiliki minimal 1 item.');
             }
-
-            
+            $this->validateStockAvailability($items);
             $totals = $this->calculateOrderTotal($items, $orderData['tax_rate'] ?? 0);
-            
-            
             $shippingCost = $orderData['shipping_cost'] ?? 0;
             $shippingAddress = $orderData['shipping_address'] ?? null;
             $distanceKm = $orderData['distance_km'] ?? null;
-            
-            
             $finalTotal = $totals['total'] + $shippingCost;
-
             $orderData = array_merge($orderData, [
                 'order_number' => Order::generateOrderNumber(),
                 'status' => OrderStatus::PENDING,
@@ -90,18 +70,13 @@ class OrderService implements OrderServiceInterface
                 'address_id' => $orderData['address_id'] ?? null,
                 'distance_km' => $distanceKm,
             ]);
-
             $order = $this->orderRepository->create($orderData);
-
             foreach ($items as $item) {
                 $product = Product::find($item['product_id']);
                 if (!$product) {
                     throw new \InvalidArgumentException("Produk dengan ID {$item['product_id']} tidak ditemukan.");
                 }
-            
-                
                 $price = $product->discount_price ?? $product->price;
-            
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
@@ -110,82 +85,112 @@ class OrderService implements OrderServiceInterface
                     'quantity' => $item['quantity'],
                     'total' => $price * $item['quantity'],  
                 ]);
+                $this->reduceProductStock($product, $item['quantity']);
+                Log::info("Stok produk '{$product->name}' dikurangi sebanyak {$item['quantity']}. Stok tersisa: " . ($product->stock - $item['quantity']));
             }
-
             DB::commit();
-
             return $this->orderRepository->findById($order->id);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error creating order: ' . $e->getMessage());
             throw $e;
         }
     }
-
+    /**
+     * Validasi ketersediaan stok untuk semua item dalam order
+     */
+    private function validateStockAvailability(array $items): void
+    {
+        foreach ($items as $item) {
+            $product = Product::find($item['product_id']);
+            if (!$product) {
+                throw new \InvalidArgumentException("Produk dengan ID {$item['product_id']} tidak ditemukan.");
+            }
+            if (!$product->is_active) {
+                throw new \InvalidArgumentException("Produk '{$product->name}' sudah tidak aktif.");
+            }
+            if ($product->stock < $item['quantity']) {
+                throw new \InvalidArgumentException("Stok produk '{$product->name}' tidak mencukupi. Stok tersedia: {$product->stock}, diminta: {$item['quantity']}");
+            }
+        }
+    }
+    /**
+     * Mengurangi stok produk
+     */
+    private function reduceProductStock(Product $product, int $quantity): void
+    {
+        if ($product->stock < $quantity) {
+            throw new \InvalidArgumentException("Stok produk '{$product->name}' tidak mencukupi.");
+        }
+        $product->decrement('stock', $quantity);
+    }
+    /**
+     * Mengembalikan stok produk (untuk kasus pembatalan order)
+     */
+    public function restoreProductStock(Order $order): void
+    {
+        try {
+            DB::beginTransaction();
+            foreach ($order->items as $orderItem) {
+                $product = Product::find($orderItem->product_id);
+                if ($product) {
+                    $product->increment('stock', $orderItem->quantity);
+                }
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error restoring product stock: ' . $e->getMessage());
+            throw $e;
+        }
+    }
     public function updateOrderStatus(int $orderId, string $status): Order
     {
         $order = $this->getOrderById($orderId);
-        
         if (!in_array($status, OrderStatus::values())) {
             throw new \InvalidArgumentException("Status '{$status}' tidak valid.");
         }
-
         $this->orderRepository->update($order, ['status' => $status]);
-        
         return $this->getOrderById($orderId);
     }
-
     public function updateOrder(int $orderId, array $data): Order
     {
         $order = $this->getOrderById($orderId);
-        
         $this->orderRepository->update($order, $data);
-        
         return $this->getOrderById($orderId);
     }
-
     public function cancelOrder(int $orderId): Order
     {
         $order = $this->getOrderById($orderId);
-        
         if (!$order->canBeCancelled()) {
             throw new OrderCannotBeCancelledException("Order dengan status '{$order->status->label()}' tidak dapat dibatalkan.");
         }
-
+        $this->restoreProductStock($order);
         $this->orderRepository->update($order, ['status' => OrderStatus::CANCELLED]);
-        
         return $this->getOrderById($orderId);
     }
-
     public function deleteOrder(int $orderId): bool
     {
         $order = $this->getOrderById($orderId);
-        
         return $this->orderRepository->delete($order);
     }
-
     public function getOrderStatistics(): array
     {
         $statusCounts = $this->orderRepository->getTotalOrdersByStatus();
         $totalOrders = array_sum($statusCounts);
-        
         return [
             'total_orders' => $totalOrders,
             'status_counts' => $statusCounts,
             'recent_orders' => $this->getRecentOrders(5),
         ];
     }
-
     public function getRecentOrders(int $limit = 10): Collection
     {
         return $this->orderRepository->getRecentOrders($limit);
     }
-
     public function calculateOrderTotal(array $items, float $taxRate = 0): array
     {
         $subtotal = 0;
-        
         foreach ($items as $item) {
             $product = Product::find($item['product_id']);
             if ($product) {
@@ -193,10 +198,8 @@ class OrderService implements OrderServiceInterface
                 $subtotal += $price * $item['quantity'];
             }
         }
-        
         $tax = $subtotal * ($taxRate / 100);
         $total = $subtotal + $tax;
-        
         return [
             'subtotal' => $subtotal,
             'tax' => $tax,
@@ -214,15 +217,11 @@ class OrderService implements OrderServiceInterface
     public function getUserOrdersCursorPaginated(int $userId, int $perPage = 15, ?int $cursor = null): array
     {
         $orders = $this->orderRepository->getUserOrdersCursorPaginated($userId, $perPage, $cursor);
-
         $hasNextPage = $orders->count() > $perPage;
-
         if ($hasNextPage) {
             $orders->pop(); 
         }
-
         $nextCursor = $hasNextPage && $orders->isNotEmpty() ? $orders->last()->id : null;
-
         return [
             'data' => $orders,
             'has_next_page' => $hasNextPage,
@@ -233,17 +232,12 @@ class OrderService implements OrderServiceInterface
     public function getFilteredCursorPaginatedOrders(array $filters = [], int $perPage = 15, ?int $cursor = null): array
     {
         $cleanFilters = Arr::except($filters, ['per_page', 'cursor']);
-
         $orders = $this->orderRepository->getFilteredCursorPaginated($cleanFilters, $perPage, $cursor);
-
         $hasNextPage = $orders->count() > $perPage;
-
         if ($hasNextPage) {
-            $orders->pop(); // Hapus item ekstra
+            $orders->pop();
         }
-
         $nextCursor = $hasNextPage && $orders->isNotEmpty() ? $orders->last()->id : null;
-
         return [
             'data' => $orders,
             'has_next_page' => $hasNextPage,
