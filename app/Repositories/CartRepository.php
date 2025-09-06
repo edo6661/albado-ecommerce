@@ -58,7 +58,7 @@ class CartRepository implements CartRepositoryInterface
     {
         $cart = $this->findByUserId($userId);
         if (!$cart) {
-            return collect();
+            return new Collection(); 
         }
         $query = CartItem::with(['product.category', 'product.images'])
             ->where('cart_id', $cart->id)

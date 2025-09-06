@@ -17,7 +17,7 @@ class ProductRepository implements ProductRepositoryInterface
     }
     public function getProductBySlug(string $slug): ?Product
     {
-        return $this->model->with(['category', 'images', 'ratings'])->where('slug', $slug)->first();
+        return $this->model->with(['category', 'images', 'ratings.user'])->where('slug', $slug)->first();
     }
     public function getRelatedProducts(int $productId, int $categoryId, int $limit = 4): Collection
     {
