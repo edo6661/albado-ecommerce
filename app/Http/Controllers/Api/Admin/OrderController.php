@@ -258,11 +258,11 @@ class OrderController extends Controller
     }
 
     /**
-     * Export orders to PDF
-     *
-     * @param ExportPdfRequest $request
-     * @return \Illuminate\Http\Response|JsonResponse
-     */
+ * Export orders to PDF
+ *
+ * @param ExportPdfRequest $request
+ * @return \Illuminate\Http\Response|JsonResponse
+ */
     public function exportPdf(ExportPdfRequest $request)
     {
         try {
@@ -270,6 +270,13 @@ class OrderController extends Controller
 
             // Get all orders without pagination for export
             $orders = $this->orderService->getFilteredOrders(array_filter($filters));
+            
+            if ($orders->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada data pesanan untuk diexport'
+                ], 404);
+            }
             
             // Tambahkan data tambahan untuk laporan
             $exportData = [
@@ -294,9 +301,11 @@ class OrderController extends Controller
 
             $filename = 'laporan-pesanan-' . date('Y-m-d-H-i-s') . '.pdf';
             
+            // Return PDF sebagai binary data langsung untuk download
             return response($pdf->output(), 200)
                 ->header('Content-Type', 'application/pdf')
                 ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->header('Access-Control-Expose-Headers', 'Content-Disposition')
                 ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
                 ->header('Pragma', 'no-cache')
                 ->header('Expires', '0');
@@ -305,8 +314,7 @@ class OrderController extends Controller
             Log::error('Export PDF Error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengexport PDF',
-                'error' => $e->getMessage()
+                'message' => 'Gagal mengexport PDF: ' . $e->getMessage()
             ], 500);
         }
     }
